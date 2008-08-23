@@ -37,10 +37,10 @@ case `hostname` in
         sh -c "sleep 0.1 && urxvt -e su - lefant" &
         fusesmb ~/net &
         ;;
-    mu|nix)
+    nix)
         ;;
-    end)
-        sudo nm-applet
+    end|mu)
+        sh -c "sleep 5 && sudo nm-applet" &
         STD_APPS="xfce4-panel urxvt emacs xscreensaver iceweasel"
         ;;
     delefant)
