@@ -1,0 +1,93 @@
+aterm*transparent:      off
+aterm*shading:		75
+
+emacs*toolBar: 0
+emacs*menuBar: off
+emacs*scrollBars: off
+
+*font: -*-terminus-medium-*-*-*-20-*-*-*-*-*-*-*
+URxvt.font:  -*-terminus-medium-*-*-*-20-*-*-*-*-*-*-*
+URxvt.perl-ext:           default,matcher
+URxvt.urlLauncher:        sensible-browser
+URxvt.keysym.C-Delete:    perl:matcher
+URxvt.underlineURLs:      true
+
+
+*scrollBar:		false
+*background:            black
+*foreground:            grey80
+*cursorColor:           red
+*cursorColor2:          blue
+
+*color0:      #000000
+*color1:      #9e1828
+*color2:      #00aa00
+*color3:      #968a38
+*color4:      #414171
+*color5:      #963c59
+*color6:      #418179
+*color7:      #bebebe
+*color8:      #666666
+*color9:      #cf6171
+*color10:     #aece92
+*color11:     #fff796
+*color12:     #4186be
+*color13:     #cf9ebe
+*color14:     #71bebe
+*color15:     #ffffff
+
+!! Light theme, for crappy CRTs
+! *background:            grey90
+! *foreground:            black
+! *cursorColor:           red
+! *cursorColor2:          blue
+! *color0:    #000000
+! *color8:    #000054
+! *color1:    #A80000
+! *color9:    #AA0054
+! *color2:    #00A800
+! *color10:   #00AA54
+! *color3:    #A8A800
+! *color11:   #AAAA54
+! *color4:    #0000A8
+! *color12:   #0055CC
+! *color5:    #A800A8
+! *color13:   #AA00AA
+! *color6:    #00A8A8
+! *color14:   #00AAAA
+! *color7:    #A8A8A8
+! *color15:   #AAAAAA
+
+
+! xterm*color0:      #000000
+! xterm*color1:      #9e1828
+! xterm*color2:      #00aa00
+! xterm*color3:      #968a38
+! xterm*color4:      #414171
+! xterm*color5:      #963c59
+! xterm*color6:      #418179
+! xterm*color7:      #bebebe
+! xterm*color8:      #666666
+! xterm*color9:      #cf6171
+! xterm*color10:     #aece92
+! xterm*color11:     #fff796
+! xterm*color12:     #4186be
+! xterm*color13:     #cf9ebe
+! xterm*color14:     #71bebe
+! xterm*color15:     #ffffff
+
+xterm*scrollBars: off
+xterm*font: -*-terminus-medium-*-*-*-20-*-*-*-*-*-*-*
+
+   XLock.lockdelay: 0
+  XLock.background: black
+  XLock.foreground: grey80
+XLock.logoutButton: -1
+    XLock.startCmd: 
+      XLock.endCmd: 
+ XLock.dpmsstandby: -1
+ XLock.dpmssuspend: 1800
+     XLock.dpmsoff: 3600
+     XLock.program: 
+        XLock.mode: blank
+       XLock.delay: 10000

@@ -1,0 +1,5 @@
+;; (setq socks-override-functions 1)
+;; (setq socks-noproxy '("localhost" "news.sil.at" "news.gmane.org" "irc.oftc.net" "irc.freenode.net"))
+;; (setq socks-server '("Default server" "127.0.0.1" 9050 5))
+;; (require 'socks)
+;; (defalias 'open-network-stream 'socks-open-network-stream)

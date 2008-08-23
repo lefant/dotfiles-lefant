@@ -1,0 +1,12 @@
+#!/bin/sh
+
+sh -c '
+for dev in domm koki maros
+do
+        echo -n "${dev}: "
+        git fetch $dev #|| exit 1
+        git merge ${dev}/master #|| exit 1
+done
+' |grep -v 'Already up-to-date.'
+
+exit 0

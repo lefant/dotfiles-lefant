@@ -1,0 +1,24 @@
+screen 0 zsh
+
+
+defutf8               on
+deflogin              off
+startup_message       off
+vbell                 on
+nethack on
+bell_msg	'Bell in %n'
+altscreen off
+
+termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+
+defscrollback         1000
+shell                 zsh
+
+
+sorendition 10 99 # default!
+
+#idle 600 eval "screen cmatrix -o -f -u 9 -C red -s" "idle 0"
+
+
+caption always "%{w$SCREEN_CAPTION_COLOR}%?%-Lw%?%{kW}%n*%f %t%?(%u)%?%{w$SCREEN_CAPTION_COLOR}%?%+Lw"
+

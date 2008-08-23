@@ -1,0 +1,36 @@
+(begin
+ (debug)
+ (if
+     (or
+      (is (application_name) "urxvt")
+      (is (window_class) "URxvt"))
+     (begin
+      (set_workspace 1)
+      (undecorate)
+      (maximize)))
+ (if
+     (is (window_class) "Emacs")
+     (begin
+      (set_workspace 2)
+      (undecorate)
+      (maximize)))
+ (if
+     (or
+      (is (application_name) "Thunderbird")
+      (is (application_name) "Mozilla-Thunderbird"))
+     (begin
+      (set_workspace 3)
+      (undecorate)
+      (maximize)))
+ (if
+     (is (application_name) "Firefox")
+     (begin
+      (set_workspace 4)
+      (undecorate)
+      (maximize)))
+ (if
+     (is (application_name) "Pidgin")
+     (begin
+      (pin)
+      (above)
+      (set_workspace 5))))

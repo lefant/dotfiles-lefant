@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if [ -e /usr/bin/zsh -a ! $TERM = "dumb" ]; then
+   /usr/bin/zsh
+   exit 0
+fi

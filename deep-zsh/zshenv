@@ -1,0 +1,79 @@
+#!/usr/bin/zsh
+
+export PAGER=less
+export CVS_RSH=ssh
+
+export PATH=$PATH:~/.bin
+
+if [ -e /tmp/emacs`id -u` -o -e /tmp/esrv`id -u`-`hostname` ]; then
+    export EDITOR="emacsclient"
+    export VISUAL="emacsclient"
+elif [ -f /usr/bin/e3em ]; then
+    export EDITOR="e3em"
+    export VISUAL="e3em"
+elif [ -f /usr/bin/zile ]; then
+    export EDITOR="zile"
+    export VISUAL="zile"
+elif [ -f /usr/bin/nano ]; then
+    export EDITOR="nano"
+    export VISUAL="nano"
+fi
+
+
+
+export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
+# case "`hostname |md5sum |head -c 5|tail --bytes=1|tr 0123456789abcdef YRGBCYMRGBCMYRGB`" in
+#   R)
+#         prompt oliver red
+# 	;;
+#   G)
+#         prompt oliver green
+# 	;;
+#   B)
+#         prompt oliver blue
+# 	;;
+#   C)
+#         prompt oliver cyan
+# 	;;
+#   M)
+#         prompt oliver magenta
+# 	;;
+#   Y)
+#         prompt oliver yellow
+# 	;;
+# esac
+
+
+export TIMEFMT="%U user %S system %P cpu %*E total, running %J"
+export COLORTERM=yes
+
+eval $(lessfile)
+eval $(dircolors)
+export LESSCHARSET=UTF-8
+
+export EMAIL="e@lefant.net"
+export DEBEMAIL="fabian linzberger <e@lefant.net>"
+export DARCS_EMAIL="Fabian Linzberger <e@lefant.net>"
+export REPORTBUGEMAIL="Fabian Linzberger <e@lefant.net>"
+export GIT_AUTHOR_NAME="Fabian Linzberger"
+export GIT_AUTHOR_EMAIL="e@lefant.net"
+export GIT_COMMITTER_NAME="Fabian Linzberger"
+export GIT_COMMITTER_EMAIL="e@lefant.net"
+
+alias ls='ls --color'
+alias less='less -R'
+
+
+
+
+SSH_ASKPASS=`which ssh-askpass`
+[[ $? = 0 ]] && export SSH_ASKPASS
+
+alias dotfile-update='cd ~ && curl https://lefant.net/i|sh'
+if [ -z `dpkg -L libcurl3|grep curl-ca-bundle.crt` ]; then
+    if [ -e .templates/root.crt ]; then
+	alias dotfile-update='cd ~ && curl --cacert ~/.templates/root.crt https://lefant.net/i|sh'
+    else
+	alias dotfile-update='cd ~ && curl -k https://lefant.net/i|sh'
+    fi
+fi

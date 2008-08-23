@@ -1,0 +1,78 @@
+
+# proper keyboard ;)
+setxkbmap dvorak
+if [ -f $HOME/.xmodmap ]
+then 
+    xmodmap $HOME/.xmodmap
+fi
+
+# no sound, no blanking
+xset s off
+xset b off
+
+
+if [ -e /usr/bin/afuse ]
+then
+    touch /dev/fuse &>/dev/null && pgrep afuse &>/dev/null || \
+        afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
+fi
+
+
+
+STD_APPS="xfce4-panel urxvt emacs"
+
+grep -q ubuntu /etc/apt/sources.list
+if [ $? -eq 0 ]
+then
+    STD_APPS="${STD_APPS} gnome-screensaver thunderbird firefox"
+else
+    STD_APPS="${STD_APPS} xscreensaver icedove iceweasel"
+fi
+
+
+# host dependent wm/session and startup things
+case `hostname` in
+    lnx-vie-003)
+        STD_APPS="${STD_APPS} pidgin"
+        sh -c "sleep 0.1 && urxvt -e su - lefant" &
+        fusesmb ~/net &
+        ;;
+    mu|nix)
+        ;;
+    end)
+        sudo nm-applet
+        STD_APPS="xfce4-panel urxvt emacs xscreensaver iceweasel"
+        ;;
+    delefant)
+        sudo invoke-rc.d openvpn start lefant &
+        sudo invoke-rc.d openvpn start mmnet &
+        STD_APPS="${STD_APPS} pidgin"
+        ;;
+    *)
+        echo "new host here"
+        ;;
+esac
+
+
+# launch standard apps
+for app in $STD_APPS
+do
+    sh -c "sleep 0.1 && $app" &
+done
+
+
+
+# find favourite windowmanager and launch it
+for i in x-window-manager wwmaker blackbox openbox fluxbox ratpoison xmonad; do
+    if [ -f /usr/bin/$i ]
+    then
+        export MYSTARTUP=$i
+    fi
+done
+$MYSTARTUP
+
+
+
+#         [[ -e /usr/bin/unclutter ]] && unclutter -idle 2 -reset -root -jitter 8 &
+#         [[ -e /usr/bin/xscreensaver ]] && [[ ! -f $HOME/.donotlockme ]] && xscreensaver &
+#         [[ -e /usr/bin/xwrits ]] && [[ ! -f $HOME/.noxwrits ]] && xwrits --typetime=50 --breaktime=3 +breakclock +clock &

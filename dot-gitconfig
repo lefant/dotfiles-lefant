@@ -1,0 +1,8 @@
+[user]
+        name = Fabian Linzberger
+	email = e@lefant.net
+[color]
+        diff = auto
+        branch = auto
+        interactive = auto
+        status = auto

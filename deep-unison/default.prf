@@ -1,0 +1,12 @@
+root = ssh://e@lefant.net//home/e
+root = /home/lefant
+
+logfile = /home/lefant/.unison/unison.log
+
+auto = true
+batch = true
+
+path = shared
+
+
+ignore = Name {*.o,*.*~}

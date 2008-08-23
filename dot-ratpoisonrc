@@ -1,0 +1,6 @@
+deffont -sony-fixed-*-*-*-*-24-*-*-*-*-*-*-*
+defborder 0
+defwinliststyle column
+
+warp off
+addhook switchwin banish

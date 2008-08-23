@@ -1,0 +1,23 @@
+screen -t lefant.net 0 zsh
+screen -t localhost 1 screen -S local -d -RR
+
+
+defutf8               on
+login                 off
+deflogin              off
+startup_message       off
+vbell                 on
+bell_msg	'Bell in %n'
+
+termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+
+defscrollback         1000
+#hardcopydir           ~/.screen
+hardcopy_append       on
+shell                 zsh
+
+caption always "%{wk}%?%-Lw%?%{kW}%n*%f %t%?(%u)%?%{wk}%?%+Lw"
+
+sorendition 10 99 # default!
+
+#idle 600 eval "screen cmatrix -o -f -u 9 -C red -s" "idle 0"

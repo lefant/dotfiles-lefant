@@ -1,0 +1,14 @@
+#!/bin/sh
+
+for mod in *; do
+    cd $mod
+        echo -n "${mod}: "
+        git $@ || exit 1
+        #|while read someline; do
+        #    echo -n "${mod}: "
+        #    echo -e "$someline"
+        #done
+    cd ..
+done
+
+echo

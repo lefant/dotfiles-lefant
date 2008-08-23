@@ -1,0 +1,20 @@
+# install this in your ~/.perltidyrc
+--maximum-line-length=78
+--indent-columns=4
+--continuation-indentation=4
+--standard-output
+--standard-error-output
+--vertical-tightness=2
+--closing-token-indentation=0
+--paren-tightness=1
+--brace-tightness=1
+--square-bracket-tightness=1
+--block-brace-tightness=1
+--nospace-for-semicolon
+--nooutdent-long-lines
+--want-break-before="% + - * / x != == >= <= =~ !~ < > | & >= < = **= += &= <<= &&= -= /= |= >>= ||= .= %= ^= x="
+
+--stack-opening-tokens 
+
+# without this we cannot have the seperator comment aournd the package
+--noblanks-before-comments

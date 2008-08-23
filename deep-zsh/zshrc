@@ -1,0 +1,118 @@
+#!/usr/bin/zsh
+
+stty -ixon -ixoff
+
+autoload -U promptinit
+promptinit
+prompt suse
+
+#autoload -U checkmail            # needed for my prompt
+autoload -U colors && colors     # make ${f,b}g{,_{,no_}bold} available
+autoload -U edit-command-line    # later bound to C-z e or v in vi-cmd-mode
+#autoload -U zed                  # what, your shell can't edit files? ["zed -f function"]
+#autoload -U zmv                  # who needs mmv or rename? ["zmv '(*).lis' '\$1.txt"]
+
+export WORDCHARS=''
+bindkey -e                       # force keybindings no matter what $VISUAL and $EDITOR say
+
+zmodload -i zsh/complist         # e.g. menu-select widget, list-colors [color specifications]
+#zmodload -a zsh/stat stat
+#zmodload -a zsh/zpty zpty
+#zmodload -a zsh/zprof zprof
+zmodload -ap zsh/mapfile mapfile
+
+autoload -U compinit
+compinit
+
+
+
+[[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
+[[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
+
+if [[ -d $HOME/.zsh ]]; then 
+    source $HOME/.zsh/completion
+    source $HOME/.zsh/zshenv
+    source $HOME/.zsh/zshlocal
+fi
+
+
+HISTFILE=$HOME/.zsh/history
+
+watch=(notme)
+setopt notify nohup
+setopt hist_ignore_space hist_ignore_dups hist_reduce_blanks
+setopt hist_verify appendhistory sharehistory
+setopt EXTENDEDHISTORY
+setopt extended_glob
+HISTSIZE=100000
+SAVEHIST=100000
+
+REPORTTIME=10
+
+
+
+# case dispatch on running local screen, meta screen or no screen at all (yet)
+case $STY in
+    *.local)
+        preexec () {
+            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
+            echo -ne "\ek$CMD\e\\"
+            SCREENTITLE=$'%{\ekzsh\e\\%}'
+            if [ `klist --test &>/dev/null ; echo $?` = 0 ]; then
+                echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
+            elif [ -f $HOME/.krb5ccname.sh ]; then
+                source $HOME/.krb5ccname.sh
+                if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]; then
+                    rm $HOME/.krb5ccname.sh
+                    unset KRB5CCNAME
+                fi
+            fi
+        }
+        precmd () {
+            RPROMPT="%(?..:()% ${SCREENTITLE}"
+        }
+        ;;
+    *.meta)
+        preexec () {
+            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
+            CMD=`echo $CMD|cut -f 1 -d "."`
+            echo -ne "\ek$CMD\e\\"
+            SCREENTITLE=$'%{\ekzsh\e\\%}'
+            [[ -e /usr/bin/keychain ]] && [[ `ssh-add -l &>/dev/null ; echo $?` = 2 ]] && keychain -q && source $HOME/.keychain/$HOST-sh
+        }
+        precmd () {
+            RPROMPT="%(?..:()% ${SCREENTITLE}"
+        }
+        ;;
+    *)
+        if [ -z $SSH_TTY ]; then
+            case `hostname` in
+                lnx-vie-003)
+                    sudo invoke-rc.d openvpn start lefant
+                    ;;
+                *)
+                    ;;
+            esac
+            [[ -e /usr/bin/afuse ]] && touch /dev/fuse &>/dev/null && \
+                afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
+
+            # run zeiterfassung start
+	    cd ~/shared/arbeitszeit/`hostname`
+	    echo "arrived **" |~/shared/code/python/timelog/timelog.py
+	    cd ~
+	    unison -silent &
+
+            screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
+	    
+            # run zeiterfassung end
+	    cd ~/shared/arbeitszeit/`hostname`
+	    echo "work" |~/shared/code/python/timelog/timelog.py
+	    unison -silent &
+	    killall afuse
+            kdestroy
+            rm /tmp/krb5cc_*
+        else
+            screen -a -A -d -RR -S local
+        fi
+        ;;
+esac

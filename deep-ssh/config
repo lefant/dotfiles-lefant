@@ -1,0 +1,24 @@
+host *
+     HashKnownHosts no
+     NoHostAuthenticationForLocalhost yes
+
+host localhost
+     StrictHostKeyChecking no
+     UserKnownHostsFile /dev/null
+
+
+host hip*
+	User root
+host hop*
+	User root
+host hep*
+	User root
+host al*
+	User root
+host al.local
+        AddressFamily inet
+host wave*
+	User root
+host wave.local
+        AddressFamily inet
+
