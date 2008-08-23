@@ -1,0 +1,455 @@
+* License and Copying Information
+
+`delicioapi.el', `delicious.el', and this README are Copyright (C) 2004, 2005
+John Sullivan
+
+Author: John Sullivan <john@wjsullivan.net>
+Created 25 October 2004
+Version: 0.3 2005-10-07
+Keywords: comm, hypermedia
+
+This program is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation; either version 2 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
+Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+* Contents of the archive
+
+- delicioapi.el
+- delicious.el
+- planner-delicious.el
+- ChangeLog
+- ChangeLog.OLD
+- README
+- COPYING
+
+* Dependencies not included
+
+- url.el
+
+You will need a version with a url-version string of either "Emacs" or
+"Exp". These are currently the two versions I'm trying to
+support. "Emacs" is the one that comes bundled with CVS Emacs. I can
+try to support more, but it gets to be a headache real fast.
+
+* Overview
+
+This is a complete set of functions for interacting with <http://del.icio.us>,
+a "social bookmarking" project written and maintained by Joshua Shachter.
+
+'delicioapi.el' contains the back-end functions that interact with the API,
+behind the scenes. I have kept these in a separate file to make them available
+for others to use in writing their own delicious applications, without being
+required to load the commands that I have written. 
+
+'delicious.el' contains the front-end interactive functions and commands for
+putting the API functions to productive use, via Emacs. 'delicioapi.el' must be
+loaded for these functions to work. 
+
+'planner-delicious.el' contains functions to integrate with Planner in
+Emacs. It requires Planner, which can be found at
+<http://sacha.free.net.ph>. This is included primarily for testing
+purposes. For instructions, please see the comments at the top of the file.
+
+The del.icio.us API does go through frequent changes; I've made an effort here
+to structure the code so that these changes can be easily accommodated.
+
+The specifications for the API are at <http://del.icio.us/doc/api>.
+
+* Getting started
+
+First, you need to set up an account at del.icio.us, by visiting that site and
+following the instructions there.
+
+Second, load the delicious-el files. Either put them in a directory that is
+already in your load-path (M-x describe-variable <ret> load-path <ret> to see
+what that is) or evaluate:
+
+  (add-to-list 'load-path "/path/to/delicious-el/files")
+  
+Then, you need to set a few required options. You can do this either through
+Customize, with:
+
+  M-x customize-group <ret> delicious <ret>
+
+or by evaluating something like the following:
+
+  (setq delicious-api-user "myusername"
+        delicious-api-password "mypassword")
+
+If you decide you want to have the delicious-el functions available to you
+automatically when you start Emacs, add:
+
+  (require 'delicious)
+  (setq delicious-api-user "myusername"
+        delicious-api-password "mypassword")
+  (delicious-api-register-auth)
+
+to your `.emacs' file, making sure that both `delicious.el' and `delicioapi.el'
+are somewhere in your load path.
+
+del.icio.us has requested that you limit your hits to the API to a reasonable
+amount. In particular, it is requested that you do not do anything that will
+trigger one hit to del.icio.us for every hit to your web site. In order to
+respect that, this program does a number of things (and will do more in the
+future) to cache information locally.
+
+* Interactive commands to use and what to expect
+
+- M-x delicious-post
+
+This is the command to post a URL to your del.icio.us account. The first time
+you execute this command in an Emacs session, delicious-el will fetch from the
+server the list of tags you've used so far, and a complete list of all your
+posts to date. You will then be prompted for information for the new post. The
+only required information is the URL itself and a description. Everything else
+is optional.
+
+delicious-el will try to guess the URL that you want to enter. If you are in a
+w3m-el buffer, it will suggest the URL of the site you are looking at. If not,
+if there is a URL under the cursor, it will suggest that.  If neither of these
+two things are true, it will scan the current buffer for a URL. It will suggest
+the first one that it finds. Next, it will check the clipboard and see if there
+is a URL there. If it doesn't find one, it will just put an "http://" in the
+input line for you.
+
+URL is a required field. If you try to enter a blank URL, the program will
+abort. 
+
+When prompted for tags, enter one at a time, hitting enter after each. You have
+tab-completion available in typical Emacs style, based on all of the tags you
+have used in the past. When you are done entering tags, just hit enter at the
+prompt. delicious-el will suggest possible tags above the prompt. Suggestions
+currently are just a list of words that appear both in your current buffer and
+in your tags list.
+
+delicious-el will attempt to guess an appropriate description. If you
+are in a w3m-el buffer, delicious-el will suggest the title of the page being
+viewed as a description. If you are looking at an article in gnus, it will
+suggest the title of the article as a description. If you like the suggestion,
+hit enter. If you don't, just erase it and type your own.
+
+The server requires some kind of description be entered. If you don't enter
+one, the program will abort. 
+
+Extended Description is the next field, and it's all up to you. No guessing
+attempts are made here.
+
+Next is the Date/Time prompt. It's not pretty, and will be improved in the
+future. If you don't enter anything here, the current date will be used. If you
+do want to enter the date, the format is indicated in the prompt.
+
+Once you enter the Date/Time and hit enter, the URL should be posted to the
+server!
+
+- M-x delicious-post-offline
+
+This works the same as the normal post command, but instead of sending your
+request to the server, it will save it to disk. You can do multiple posts this
+way, and they will all be stored. Then when you are online and ready to upload
+the posts to the server, call M-x delicious-post-cache to send them all. You'll
+be prompted to clear the cache after the posts have been sent.
+
+- M-x delicious-rename-tag
+
+This will prompt you for an old tag and one or more new tags. As usual, you can
+use tab completion when entering this information. In fact, the old tag you
+enter must match an existing tag. The old tag will be changed to the new tags
+for all posts that had the old tag. After the renaming is done, the local tag
+list will be refreshed from the server.
+
+- M-x delicious-delete-post
+
+Use this to delete a post by entering its URL. Currently this command is dumb;
+there is no completion, and it won't check to see if the post exists before
+trying to delete it. But it works to delete things, and there will be time for
+improvements later.
+
+- M-x delicious-build-posts-list
+
+This command will refresh the local list of your posts from the server. You
+shouldn't use this often. The reason posts are cached locally is to avoid
+bothering the server too much. There isn't much reason to use this command,
+because any posts made during your current session are recorded locally. But if
+you suspect that something has gone wrong, you can use this command to refresh
+from the server. Or, if you add posts from an external interface like your
+non-emacs web browser, it would be useful to refresh the local list. 
+
+Normally, we use whichever copy of the posts is newer. If your local list has
+become corrupt and you need to insist on fetching a new one from the server,
+use C-u M-x delicious-build-posts-list to skip the timestamp comparison and go
+straight to the server.
+
+* Interactive search commands
+
+Although some filtering can be done via the API, we have some search features
+that operate on the local copy of your posts list. This enables us to have much
+more powerful searching, means you aren't dependent on your internet connection
+to be able to search your posts, and minimizes load on the del.icio.us server.
+
+All of the search commands will display their results in a "*delicious search
+results*" buffer, which is displayed in Delicious Search mode. The default is
+for this buffer to open in a window other than the active one, or for a second
+window to be created if none is available. Delicious Search mode will also add
+more useful shortcuts in the future. While in the results, buffer, use C-h m to
+see the current bindings.
+
+Results are currently unsorted. At least, no intentional sorting is
+applied. That will change in the future. 
+
+Links and tags are clickable, with either the return key or middle click of the
+mouse. Clicking on a link will load the link in your default Emacs web
+browser. Clicking on a tag will peform a new search displaying all the posts
+that have that tag.
+
+The basic search command is:
+
+- M-x delicious-search-posts-regexp
+
+This command will prompt you for a regular expression, search all the fields in
+all of your posts for matches, and display the matches.
+
+More targeted searching can be achieved by:
+
+- M-x delicious-search-description-regexp
+
+This command will prompt you for a regular expression, search only the
+description field of your posts for matches, and display them.
+
+- M-x delicious-search-href-regexp
+
+This command will prompt you for a regular expression, search only the
+href/link field of your posts, and display the matches.
+
+- M-x delicious-search-tags-regexp
+
+This command will prompt you for a regular expression, search only the tag
+field of your posts, and display the matches. When searching, it may be useful
+to remember that multiple tags are separated by whitespace. 
+
+Since tags are the means for organizing links in del.icio.us, we have a special
+search function just for them:
+
+- M-x delicious-search-tags
+
+This command will prompt you for tags, one at a time. You can enter as many as
+you like, and you can use <TAB>, <SPC>, or '?' to use Emacs minibuffer
+completion based on your previously used tags. Just hit enter at the prompt
+when you are done. A search will be done for all of the posts that have all of
+those tags. The results will be displayed the same as the other search
+commands. The order of the tags is not considered important when determining
+matches. You do not need to account for whitespace between tags with this
+method.
+
+- M-x delicious-search-hash
+
+You can search for a post by its hash field, if you really want to.
+
+* Delicious Search Mode
+
+There are some additional commands conveniently available to you while in a
+Delicious Search mode buffer. 
+
+- M-x delicious-search-add-tags
+
+When you are over the list of tags for a post, this command is bound to
+'a'. You will be prompted for successive tags. Enter as many as you want, with
+a blank line to end. You will be prompted to see whether the timestamp should
+be updated with the current time, or whether the original timestamp for the
+post should be preserved. After that, the post will be resubmitted to the
+server with the new tags and the search buffer will be updated.
+
+- M-x delicious-search-delete-tags
+
+When you are over the list of tags for a post, this command is bound to
+`d'. This works the same as delicious-search-add-tags, except that all the tags
+you enter will be deleted from the current post.
+
+- M-x delicious-search-who-else
+
+When you are over any field of a post, this command is bound to `w'. It will
+open a page with your default browser showing all of the other del.icio.us
+users who have bookmarked this URL.
+
+* Useful noninteractive functions
+
+Noninteractive functions can't be called directly with M-x in Emacs. You can
+call them in a variety of ways, including M-: (function-here), or by typing
+(function-here) in the *scratch* buffer, moving to after the closing
+parenthesis, and typing C-x C-e. Or you can call them from within your own
+Emacs Lisp programs.
+
+- (delicious-api-html)
+
+This is a noninteractive function you can use to fetch an HTML feed of posts
+from del.icio.us according to a long list of arguments. It's very rough at the
+moment, but it seems to work. An interactive frontend is forthcoming. Note that
+if you do not give it a user name to fetch posts from, it will default to using
+your `delicious-api-user' name.
+
+You can use this function, for example, to track the recent posts from users
+whose interests you think overlap with yours, or you can use it to include your
+own most recent delicious postings in your blog, especially if you blog using
+emacs-wiki.el.
+
+You can read the documentation on the server for the HTML feed parameters at
+<http://del.icio.us/doc/html>.
+
+You can set defaults for all of the parameters in the delicious customize
+group, or by setting any of the variables in the following list. When you call
+(delicious-api-html), you have to have the many arguments in order. If you want
+to use your default for one of the arguments, just put `nil' in the function
+call in the spot for that argument. That will cause your default to be used. If
+you have a value other than nil for an argument in the function call, that
+value will be used rather than the default. So, if you want to call
+(delicious-api-html) to get the 20 most recent links from johnsu01's
+del.icio.us account, but your default is set at 15, you would do this:
+
+(delicious-api-html "johnsu01" nil 20)
+
+If you usually want an RSS button to be included with your list, and you have
+your default set accordingly, but want in this case not to have the RSS button,
+you would do:
+
+(delicious-api-html "johnsu01" nil 20 nil nil nil nil nil nil nil nil "no")
+
+Note that both of these examples specify `nil' for the TAGNAME argument. This
+means that the most recent posts, regardless of tag, will be
+returned. Specifying a TAGNAME will return only posts with that tag. 
+
+Here is the list of parameters and a very brief description of each.
+
++ delicious-api-html-count
+  The number of times to show by default when fetching an HTML del.icio.us feed. The server default is 15.
+
++ delicious-api-html-extended
+  Either 'title' or 'body'. The server default is `title'. This means that the
+  extended description will just be displayed in the link's title attribute. If
+  you want the extended description to be displayed on its own, use `body'.
+
++ delicious-api-html-divclass
+  Class to use for div. The server default is `delPost'.
+
++ delicious-api-html-aclass
+  Class to use for a link. The server default is `delLink'.
+
++ delicious-api-html-tags 
+  Show tags or not. Server default is to show tags. Set this to true if you do NOT want tags.
+
++ delicious-api-html-tagclass
+  Class to use for tags. Server default is `delTag'.
+
++ delicious-api-html-tagsep
+  String to use for separator. Server default is `delTagSep'.
+
++ delicious-api-html-tagsepclass
+  Class to use for separator. Server default is `delTagSep'.
+
++ delicious-api-html-bullet
+  HTML entity to use for bullet. Set it to empty for no bullet. Server default is `raquo'.
+
++ delicious-api-html-rssbutton
+  Add an RSS feed button using CSS. Server default is to show a button with `yes'.
+
++ delicious-api-html-extendeddiv
+  This is whether to put the extended description for the entry in its own
+  <div>. The server default is `no'.
+
++ delicious-api-html-extendedclass
+  This the class to use for the extendeddiv. The server default is empty.
+
+* Advanced use
+
+- Binding commands to keys
+
+The author uses this in his `.emacs' to bind `delicious-post' to <C-c p>. 
+
+(global-set-key "\C-cp" 'delicious-post)
+
+* Integration with other Emacs modes
+
+- w3m
+
+Integration with w3m is one of the things that I'm working on right
+now. So far, I've implemented these features:
+
+-- URL and description guessing. The program will use the current page in the
+   w3m buffer if you are using w3m as a suggestion for the link to post. It
+   will use the current page name as a suggestion for the description of the
+   link.
+
+-- delicious-w3m-html. This is an interactive command to visit the HTML feed of
+   a user's del.icio.us feed. If you call it with a prefix argument (C-u M-x
+   delicious-w3m-html), the feed will be displayed in a new session. The
+   default parameters are the same as the ones you set to use
+   `delicious-api-html'. You can configure them in the `delicious' customize
+   group, or individually (they all have the name delicious-api-html-*). After
+   issuing the command, you will be prompted for the username, number of posts,
+   and tag to filter by. Hitting return at these prompts will cause the
+   defaults to be used. The defaults are indicated in the prompts. After
+   collecting the information, w3m will then visit a page constructed according
+   to your parameters in a w3m buffer.
+
+-- delicious-w3m-bookmark-recent. This is the beginning of a larger effort at
+   integrating delicious with w3m bookmarks. It is an interactive command that
+   will add your delicious posts to your w3m bookmarks file. It operates based
+   on recent posts. You tell it how many posts to scan, what tag (or tag
+   intersection like "foo+bar" to filter by, and what w3m bookmark section to
+   put the posts in. It will deposit the matching posts in that section,
+   without checking for duplicates or making any effort at synching (yet). Note
+   that you need to have the `w3m-bookmarks.el' library loaded to use this feature.
+
+-- delicious-w3m-export. This is an interactive command that will export a w3m
+   bookmark section to del.icio.us. It's very primitive and not 100% reliable
+   at the moment. You can export one section at a time. When prompted for the
+   section name, <tab> will complete based on your existing sections. You can
+   then enter tags just like you do when you post. These tags will all be
+   assigned to each entry in the w3m section. You must enter at least one
+   tag. After that, you can enter an optional extended description and time
+   parameter, which will be attached to all of the posts from this section. I
+   say it's not 100% reliable because a few times I've had some posts not show
+   up, and I haven't figured out why yet. Also, this command may not behave if
+   your `w3m-bookmark-section-format' is not something close to
+   "<h2>%s</h2>\n<ul>\n<li><a href=\"%s\">%s</a>\n<!--End of section (do not
+   delete this comment)-->\n</ul>\n". It _should_ work as long as the section
+   titles are enclosed in "<h2></h2>", each bookmark begins with <li>, and each
+   bookmark only occupies one line. Future versions may be more flexible in
+   this regard and will do verification of your posts. You need to have the
+   `w3m-bookmarks.el' library loaded to use this feature.
+
+* Problems
+
+- HTTP errors
+
+Currently, it is not uncommon for the del.icio.us server to be temporarily
+unavailable. delicious-el should report any specific errors it receives. If you
+want more information, check the contents of the *delicious output*
+buffer. Errors with the server are very often temporary. You can resubmit your
+post by doing C-x ESC ESC (the default binding for repeat-complex-command) and
+using the up arrow to move back to the delicious-post command in your history,
+and hitting enter. If you are still getting a server error, then you can use
+delicious-post-offline to save the post to your cache. Later on, use
+delicious-post-cache to send the post to the server.
+
+* Keeping Up
+
+Updated versions can be had via darcs at
+<http://www.wjsullivan.net/darcs/delicious-el>. You can also download the
+archive, generally just as current, at
+<http://www.wjsullivan.net/darcs/delicious-el/delicious-el.tar.gz>.
+
+There is a Web page with updated information about the project at
+<http://www.wjsullivan.net/code/delicious-el.html>.
+
+* Bugs
+
+Please report any bugs or suggestions to me at <john@wjsullivan.net>.
+
