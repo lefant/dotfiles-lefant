@@ -31,6 +31,10 @@
 (global-set-key "\C-c\C-m" 'execute-extended-command)
 (global-set-key [f5]  'call-last-kbd-macro)
 
+(global-set-key "\C-c f" 'ffap)
+(global-set-key "\C-c\C-f" 'ffap)
+
+
 
 (setq backup-directory-alist `(("." . ,(expand-file-name "~/.backup"))))
 (setq delete-old-versions t)
@@ -93,6 +97,17 @@
                          nil t)))
 
 
+(autoload 'imenu-tree "imenu-tree" "Show imenu tree" t)
+(setq imenu-tree-auto-update t)
+
+
+(outline-minor-mode)
+(load "outline-conf.el")
+
+
+
+
+
 (defun pretty-lambdas ()
   (font-lock-add-keywords
    nil `(("(\\(lambda\\>\\)"
@@ -101,13 +116,6 @@
                     nil))))))
 
 (add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
-
-
-
-
-
-
-
 
 
 

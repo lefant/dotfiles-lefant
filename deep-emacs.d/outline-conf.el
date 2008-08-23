@@ -22,5 +22,6 @@
  (define-key cm-map "p" 'outline-previous-visible-heading)  ; Previous
  (define-key cm-map "f" 'outline-forward-same-level)        ; Forward - same level
  (define-key cm-map "b" 'outline-backward-same-level)       ; Backward - same level
- (global-set-key (kbd "\C-o f") cm-map)
+ (global-set-key "\C-o" cm-map)
+ ;;(global-set-key "\M-o" cm-map)
 
