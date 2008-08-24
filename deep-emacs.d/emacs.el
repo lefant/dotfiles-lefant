@@ -32,7 +32,6 @@
 (global-set-key [f5]  'call-last-kbd-macro)
 
 (global-set-key "\C-c f" 'ffap)
-(global-set-key "\C-c\C-f" 'ffap)
 
 
 
