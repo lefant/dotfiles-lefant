@@ -1,6 +1,8 @@
 ;;; cperl-mode is preferred to perl-mode                                        
 ;;; "Brevity is the soul of wit" <foo at acm.org>                               
-(defalias 'perl-mode 'cperl-mode)
+;(defalias 'perl-mode 'cperl-mode)
+
+
 
 (defun lefant-perl-indent-setup ()
   (setq cperl-hairy t)
@@ -31,8 +33,12 @@
 
 
 
-(add-to-list 'load-path "~/.elisp/pde")
-(load "pde-load")
+;(add-to-list 'load-path "~/.elisp/pde")
+;(load "pde-load")
+
+(load "/usr/share/emacs/site-lisp/sepia/sepia.el")
+
+;;(load "perly-sense-conf.el")
 
 
 
