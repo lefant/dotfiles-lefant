@@ -2,6 +2,9 @@
 ;;; "Brevity is the soul of wit" <foo at acm.org>                               
 ;(defalias 'perl-mode 'cperl-mode)
 
+(load "/usr/share/emacs/site-lisp/sepia/sepia.el")
+(defalias 'perl-mode 'sepia-mode)
+(require 'sepia)
 
 
 (defun lefant-perl-indent-setup ()
@@ -18,8 +21,8 @@
 (add-hook 'cperl-mode-hook 'lefant-perl-indent-setup)
 
 
-(require 'cperl-mode)
-(lefant-perl-indent-setup)
+;(require 'cperl-mode)
+;(lefant-perl-indent-setup)
 
 ;;; load custom lib for tt support
 (load "~/.elisp/tt-mode.el")
@@ -36,7 +39,6 @@
 ;(add-to-list 'load-path "~/.elisp/pde")
 ;(load "pde-load")
 
-(load "/usr/share/emacs/site-lisp/sepia/sepia.el")
 
 ;;(load "perly-sense-conf.el")
 
