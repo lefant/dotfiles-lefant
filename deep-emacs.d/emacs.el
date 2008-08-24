@@ -108,6 +108,8 @@
 (load "outline-conf.el")
 
 
+(load "haskell-conf.el")
+
 
 
 
