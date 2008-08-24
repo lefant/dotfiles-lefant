@@ -65,12 +65,16 @@
 	      auto-mode-alist))
 
 
-(autoload 'enable-paredit-mode "paredit.el" "structured editing for lisp" t)
+(require 'org)
+(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
+
 
 
 (add-to-list 'load-path "~/.emacs.d/")
 (add-to-list 'load-path "~/.elisp/")
 
+
+(autoload 'enable-paredit-mode "paredit.el" "structured editing for lisp" t)
 
 
 ;(load "~/.elisp/darcsum/darcsum.el")
