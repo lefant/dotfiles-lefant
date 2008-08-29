@@ -59,7 +59,7 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            if [ `klist --test &>/dev/null ; echo $?` = 0 ]; then
+            if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]; then
                 echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
             elif [ -f $HOME/.krb5ccname.sh ]; then
                 source $HOME/.krb5ccname.sh
@@ -94,6 +94,17 @@ case $STY in
             CMD=`echo $CMD|cut -f 1 -d "."`
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
+
+            if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]; then
+                echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
+            elif [ -f $HOME/.krb5ccname.sh ]; then
+                source $HOME/.krb5ccname.sh
+                if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]; then
+                    rm $HOME/.krb5ccname.sh
+                    unset KRB5CCNAME
+                fi
+            fi
+
             [[ -e /usr/bin/keychain ]] && [[ `ssh-add -l &>/dev/null ; echo $?` = 2 ]] && keychain -q && source $HOME/.keychain/$HOST-sh
         }
         precmd () {
