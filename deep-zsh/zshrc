@@ -58,6 +58,7 @@ case $STY in
             local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
+
             if [ `klist --test &>/dev/null ; echo $?` = 0 ]; then
                 echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
             elif [ -f $HOME/.krb5ccname.sh ]; then
@@ -67,6 +68,21 @@ case $STY in
                     unset KRB5CCNAME
                 fi
             fi
+
+            if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]; then
+                if [ -f /usr/bin/emacsclient.emacs-snapshot ]; then
+                    export EDITOR="emacsclient -c"
+                else
+                    export EDITOR="emacsclient"
+                fi
+            elif [ -f /usr/bin/zile ]; then
+                export EDITOR="zile"
+            elif [ -f /usr/bin/nano ]; then
+                export EDITOR="nano"
+            elif [ -f /usr/bin/vim ]; then
+                export EDITOR="vim"
+            fi
+            export VISUAL=$EDITOR
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
