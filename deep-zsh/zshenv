@@ -5,20 +5,6 @@ export CVS_RSH=ssh
 
 export PATH=$PATH:~/.bin
 
-if [ -e /tmp/emacs`id -u` -o -e /tmp/esrv`id -u`-`hostname` ]; then
-    export EDITOR="emacsclient"
-    export VISUAL="emacsclient"
-elif [ -f /usr/bin/e3em ]; then
-    export EDITOR="e3em"
-    export VISUAL="e3em"
-elif [ -f /usr/bin/zile ]; then
-    export EDITOR="zile"
-    export VISUAL="zile"
-elif [ -f /usr/bin/nano ]; then
-    export EDITOR="nano"
-    export VISUAL="nano"
-fi
-
 
 
 export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
@@ -50,6 +36,7 @@ export COLORTERM=yes
 eval $(lessfile)
 eval $(dircolors)
 export LESSCHARSET=UTF-8
+export LESS='-iR'
 
 export EMAIL="e@lefant.net"
 export DEBEMAIL="fabian linzberger <e@lefant.net>"
@@ -60,8 +47,7 @@ export GIT_AUTHOR_EMAIL="e@lefant.net"
 export GIT_COMMITTER_NAME="Fabian Linzberger"
 export GIT_COMMITTER_EMAIL="e@lefant.net"
 
-alias ls='ls --color'
-alias less='less -R'
+alias ls='ls --color=auto --classify'
 
 
 
