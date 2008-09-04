@@ -1,7 +1,7 @@
 #!/bin/sh
 
 sh -c '
-for dev in domm koki maros
+for dev in domm koki maros lefant
 do
         echo -n "${dev}: "
         git fetch $dev #|| exit 1
