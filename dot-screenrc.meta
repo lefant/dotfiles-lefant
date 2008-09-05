@@ -1,4 +1,4 @@
-screen -t lefant.net 0 zsh
+screen 0 zsh
 screen -t localhost 1 screen -S local -d -RR
 
 
