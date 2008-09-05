@@ -18,7 +18,6 @@ zstyle ':completion:*' squeeze-slashes true
 zstyle ':completion:*' substitute 1
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' word true
-zstyle :compinstall filename '/home/lefant/.zsh/completion'
 
 autoload -Uz compinit
 compinit
