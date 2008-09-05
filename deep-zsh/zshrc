@@ -29,10 +29,12 @@ compinit
 [[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
-if [[ -d $HOME/.zsh ]]; then 
-    source $HOME/.zsh/completion
-    source $HOME/.zsh/zshenv
-    source $HOME/.zsh/zshlocal
+if [ -d $HOME/.zsh ]
+then
+    for f in $HOME/.zsh/completion $HOME/.zsh/zshenv $HOME/.zsh/zshuser-$USER $HOME/.zsh/zshlocal
+    do
+        [ -e $f ] && source $f
+    done
 fi
 
 
