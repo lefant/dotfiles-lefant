@@ -31,7 +31,7 @@ compinit
 
 if [ -d $HOME/.zsh ]
 then
-    for f in $HOME/.zsh/completion $HOME/.zsh/zshenv $HOME/.zsh/zshuser-$USER $HOME/.zsh/zshlocal
+    for f in $HOME/.zsh/completion $HOME/.zsh/zshuser-$USER $HOME/.zsh/zshlocal
     do
         [ -e $f ] && source $f
     done
@@ -50,6 +50,31 @@ HISTSIZE=100000
 SAVEHIST=100000
 
 REPORTTIME=10
+
+
+
+export PAGER=less
+export CVS_RSH=ssh
+
+export PATH=$PATH:~/.bin
+
+export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
+
+export TIMEFMT="%U user %S system %P cpu %*E total, running %J"
+export COLORTERM=yes
+
+eval $(lessfile)
+eval $(dircolors)
+export LESSCHARSET=UTF-8
+export LESS='-iFRSX'
+
+alias ls='ls --color=auto --classify'
+
+
+SSH_ASKPASS=`which ssh-askpass`
+[[ $? = 0 ]] && export SSH_ASKPASS
+
+
 
 
 
