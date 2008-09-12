@@ -44,6 +44,7 @@ case $STY in
                 export EDITOR="vim"
             fi
             export VISUAL=$EDITOR
+            alias e="$EDITOR"
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"

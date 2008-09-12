@@ -19,7 +19,7 @@ linkifnotexists () {
     fi
     # test existance of 2nd argument, otherwise create link to 1st
     if [ -e $dest ]; then
-        echo -n "SKIPPING existing "
+        #echo -n "SKIPPING existing "
         ls -ld $dest |cut -d ' ' -f 8-10
     else
         ln -v -s $source $dest
