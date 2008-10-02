@@ -6,19 +6,11 @@ host localhost
      StrictHostKeyChecking no
      UserKnownHostsFile /dev/null
 
-
-host hip*
-	User root
-host hop*
-	User root
-host hep*
-	User root
-host al*
-	User root
-host al.local
-        AddressFamily inet
-host wave*
-	User root
-host wave.local
+host *.local
         AddressFamily inet
 
+host hip* hop* hep* al* wave*
+	User root
+
+host rd01* srv2*
+        port 55022
