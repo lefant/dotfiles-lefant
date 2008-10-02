@@ -1,0 +1,16 @@
+curl
+darcs
+ethtool
+file
+git-core
+iproute
+less
+lftp
+mc
+psmisc
+rsync
+screen
+unzip
+w3m
+zile
+zsh

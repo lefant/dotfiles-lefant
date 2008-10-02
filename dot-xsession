@@ -39,9 +39,13 @@ case `hostname` in
         ;;
     nix)
         ;;
-    end|mu)
+    end)
         sh -c "sleep 5 && sudo nm-applet" &
         STD_APPS="xfce4-panel urxvt emacs xscreensaver iceweasel"
+        ;;
+    mu)
+        sh -c "sleep 5 && sudo nm-applet" &
+        STD_APPS="xfce4-panel urxvt emacs gnome-screensaver firefox"
         ;;
     delefant)
         sudo invoke-rc.d openvpn start lefant &
