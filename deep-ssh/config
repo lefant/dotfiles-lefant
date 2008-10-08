@@ -7,10 +7,13 @@ host localhost
      UserKnownHostsFile /dev/null
 
 host *.local
-        AddressFamily inet
+     AddressFamily inet
 
 host hip* hop* hep* al* wave*
-	User root
+     user root
 
 host rd01* srv2*
-        port 55022
+     port 55022
+
+host vpn-* bar-*
+     user root
