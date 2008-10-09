@@ -28,7 +28,7 @@ file $SOURCE/dot-debs $HOME/.debs
 file $SOURCE/dot-debs-x $HOME/.debs-x
 file $SOURCE/dot-xsession $HOME/.xsession
 
-echo link $SOURCE $HOME
+#echo link $SOURCE $HOME
 
 link $SOURCE/dot-aptitude $HOME/.aptitude
 link $SOURCE/dot-bin $HOME/.bin
