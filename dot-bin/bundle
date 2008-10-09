@@ -1,0 +1,1998 @@
+#!/usr/bin/perl
+$ID = q$Id: bundle,v 2.31 2008-10-06 01:18:35 eagle Exp $;
+#
+# bundle -- Maintains a "bundle" of files.
+#
+# Originally written by Roland Schemers <schemers@stanford.edu>
+# Some modifications by Larry Schwimmer <opusl@stanford.edu>
+# Rewritten and updated by Russ Allbery <rra@stanford.edu>
+# Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004, 2006,
+#     2008 Board of Trustees, Leland Stanford Jr. University
+#
+# This program is free software; you may redistribute it and/or modify it
+# under the same terms as Perl itself.
+#
+# One special point should be noticed when reading or modifying any of the
+# following code:  This script makes *extensive* use of the special _ file
+# handle in file tests.  _ holds the stat information from the previous file
+# test, stat, or lstat, and therefore it's absolutely vital to always pay
+# attention whenever stating or testing something to make sure one doesn't
+# modify the expected contents of _.
+#
+# Also as a result of this, this code does a lot of apparently unnecessary -l
+# file tests.  For example, rather than simply checking for existence of a
+# file with -e $file, we do (-l $file || -e _) instead.  This is because if
+# $file is a dangling symbolic link, -e $file will return *false* even though
+# something *does* exist, because it will do a stat and try to follow the
+# symlink.  We do a -l first to force an lstat and then use the results of
+# that for the existence check.  Be very careful to always follow this idiom
+# and be aware of dangling symbolic links and how they affect the results of
+# your file tests.
+#
+# (It's arguable if this is the best programming style; one option would be to
+# always do an explicit lstat before any file tests so as to make the hidden
+# behavior more obvious.  This works, however, and it's actually a fairly easy
+# idiom to fall into if one is actively thinking about what's going on.)
+#
+# It's also worth noting that currently the subs in this file are ordered
+# largely by dependency and reordering them may break things.  Predeclarations
+# would probably be a good idea someday....
+#
+# Remember to always chown before chmod, since if the target permissions
+# include setuid or setgid bits, chown may clear those bits.
+
+##############################################################################
+# Site configuration
+##############################################################################
+
+# The default directory in which to look for bundle files.  By default, this
+# can be overriden by setting BUNDLE_LIB.  Note that . is *not* searched
+# unless it's one of the paths in the library.
+$LIBRARY = $ENV{BUNDLE_LIB} || '.:/usr/pubsw/lib/bundle';
+
+# The full path to the program, used to find itself to feed itself to perldoc.
+$FULLPATH = $0;
+$0 =~ s%.*/%%;
+
+##############################################################################
+# Modules and declarations
+##############################################################################
+
+# We want File::stat and the bundling ability in Getopt::Long, plus we need
+# sysseek which wasn't added until 5.004.  This means we can use constructs
+# like for my $var.
+require 5.004;
+
+use Fcntl qw(O_APPEND O_CREAT O_EXCL O_RDWR O_RDONLY O_WRONLY);
+use File::Copy qw(copy move);
+use File::stat qw(stat lstat);
+use Getopt::Long qw(GetOptions);
+
+use strict;
+use vars qw(%CONFIG $FILE $FULLPATH $ID $LIBRARY %OVERRIDE %REPORTED);
+use subs qw(set);
+
+##############################################################################
+# Utility functions
+##############################################################################
+
+# Prints out a given string if and only if debugging is enabled.
+sub debug { print (@_, "\n") if $CONFIG{debug} }
+
+# Return the first element of a list that's defined.
+sub first_defined { for (@_) { return $_ if defined } undef }
+
+# Given either a UID or a username, convert it to a UID and return it.
+sub name2uid {
+    my $user = shift;
+    return if (!defined $user || $user eq '');
+    return $user if ($user =~ /^-?\d+$/);
+    my $uid = getpwnam $user;
+    die "$0: can't find UID for $user\n" unless defined $uid;
+    $uid;
+}
+
+# Given either a GID or a group, convert it to a GID and return it.
+sub name2gid {
+    my $group = shift;
+    return undef if (!defined $group || $group eq '');
+    return $group if ($group =~ /^-?\d+$/);
+    my $gid = getgrnam $group;
+    die "$0: can't find GID for $group\n" unless defined $gid;
+    $gid;
+}
+
+##############################################################################
+# Initialization
+##############################################################################
+
+# Read any command line options into the %CONFIG array.  Command line options
+# should override options set in bundle files.
+sub read_options {
+    my @options = (
+                   'backup|b',             # save backout information
+                   'changes|c',            # show changes with diff
+                   'cwd|C=s',              # change working directory
+                   'debug|d',              # print debugging information
+                   'define|D=s%',          # define a variable to a value
+                   'force|f',              # update even unchanged files
+                   'help|h',               # print usage and exit
+                   'just-print|dry-run|n', # just print what would be done
+                   'quiet|q',              # don't print actions
+                   'source|s',             # report source file location
+                   'up-to-date|u',         # report files that are fine
+                   'younger|y',            # only update if younger
+                   'version|v'             # print version and exit
+                  );
+
+    # Actually get the options, after setting a couple of defaults.
+    Getopt::Long::config ('bundling', 'no_ignore_case', 'no_getopt_compat');
+    GetOptions (\%CONFIG, @options) or exit 1;
+
+    # Act on a few things special options.
+    if ($CONFIG{help}) {
+        print "Feeding myself to perldoc, please wait....\n";
+        exec ('perldoc', '-t', $FULLPATH) or die "$0: can't fork: $!\n";
+    } elsif ($CONFIG{version}) {
+        my $version = join (' ', (split (' ', $ID))[1..3]);
+        $version =~ s/,v\b//;
+        $version =~ s/(\S+)$/($1)/;
+        $version =~ tr%/%-%;
+        print $version, "\n";
+        exit;
+    }
+
+    # Handle variable declarations.
+    if ($CONFIG{define}) {
+        for (keys %{$CONFIG{define}}) {
+            set ($_, $CONFIG{define}{$_});
+            $OVERRIDE{$_} = 1;
+        }
+    }
+
+    # Make sure they don't feed us bogus combinations.
+    if ($CONFIG{force} && $CONFIG{younger}) {
+        die "$0: -f (--force) conflicts with -y (--younger)\n";
+    }
+
+    # A few options imply other options.
+    if ($CONFIG{'debug'})   { $CONFIG{'up-to-date'} = 1 }
+    if ($CONFIG{'changes'}) { $CONFIG{'just-print'} = 1 }
+}
+
+# Locate a bundle file, doing a search for it in the bundle library if
+# necessary.  Takes in a filename to find and returns either the full path or
+# a relative path if the file was found in the current directory, or undef if
+# the file wasn't found.  If the provided filename is already an absolute
+# path, no library search is done.  Note that the current directory is *not*
+# searched unless it is explicitly included in the path (it's in the default
+# path).  The filename is checked for with .b added if it doesn't already end
+# in .b.  Only regular files are checked for.
+sub find_bundle {
+    my $file = shift;
+    my $dotb = ($file =~ /\.b$/);
+
+    if ($file =~ m%^/%) {
+        return $file if (-f $file);
+        return "$file.b" if (!$dotb && -f "$file.b");
+    } else {
+        foreach (split (/:/, $LIBRARY)) {
+            return "$_/$file" if (-f "$_/$file");
+            return "$_/$file.b" if (!$dotb && -f "$_/$file.b");
+        }
+    }
+    undef;
+}
+
+##############################################################################
+# Parsing
+##############################################################################
+
+# Does variable interpolation, warning if we attempt to interpolate an
+# undefined variable.
+sub interpolate {
+    local $_ = shift;
+    my $subst = sub {
+        my $variable = shift;
+        if ($variable !~ /^[a-z0-9]+$/ && defined $CONFIG{$variable}) {
+            return $CONFIG{$variable};
+        } else {
+            die "$0:$FILE:$.: Unknown variable \$$variable\n";
+        }
+    };
+
+    # We want to do variable substitution in a single regex match so that we
+    # don't accidentally interpolate more than once, but under the regex
+    # syntax of 5.004 and earlier I can't find a way to do that.  See the
+    # comments in the 5.005 version to understand what's going on here.
+    # Annoyingly, we can't just include the 5.005 regex, since even under
+    # 5.004 Perl tries to compile it.  I work around that by putting the
+    # problematic part in a variable.
+    if ($] < 5.005) {
+        s/((?:^|\G|[^\\\$])(?:\\\\)*)\$(\w+)/$1 . &$subst ($2)/ges;
+        s/((?:^|\G|[^\\\$])(?:\\\\)*)\$\{(\w+)\}/$1 . &$subst ($2)/ges;
+    } else {
+        my $closebrace = '(?(2)\})';
+        s/((?:                # Anchor at
+              ^               # ...either the beginning of the string...
+             |\G              # ...where the last substitution left off...
+             |[^\\\$]         # ...or something other than a \ or $,
+           )                  # followed by...
+           (?:\\\\)*          # ...an even number of backslashes,
+          )                   # and remember all that (1).
+
+        # The point of all of the above is to make sure that the next
+        # character is not escaped by a backslash, which (since backslashes
+        # can be escaped by backslashes) is actually somewhat tricky.  But now
+        # that we've done that work, we can, with confidence, match an...
+
+          \$                  # ...unescaped $, beginning a variable name
+          (\{)?               # ...which may be in curly braces (2)
+          (\w+)               # The variable name (3) that we'll use.
+          $closebrace         # The close curly, iff we had an open curly.
+         /                    # Replace with....
+          $1 . &$subst ($3)   # ...the leading stuff & the variable value,
+         /gesxo;              # globally, across newlines.
+    }
+    $_;
+}
+
+# Parses a single line, splitting it on whitespace, and returns the resulting
+# array.  Double quotes are supported for arguments that have embedded
+# whitespace, and backslashes escape the next character (whatever it is).  We
+# can't use Text::ParseWords because it's too smart for its own good.  A parse
+# failure is considered a fatal error.
+sub parse_line {
+    my $line = shift;
+    my (@args, $snippet);
+    while ($line ne '') {
+        $line =~ s/^\s+//;
+        $snippet = '';
+        while ($line !~ /^\s/ && $line ne '') {
+            my $tmp;
+            if (index ($line, "'") == 0) {
+                $line =~ s/^\'((?:[^\'\\]|\\.)*)\'//s
+                    or die "$0:$FILE:$.: Unbalanced quotes\n";
+                ($tmp = $1) =~ s/\\([\'\\])/$1/g;
+            } elsif (index ($line, '"') == 0) {
+                $line =~ s/^\"((?:[^\"\\]|\\.)*)\"//s
+                    or die "$0:$FILE:$.: Unbalanced quotes\n";
+                ($tmp = interpolate $1) =~ s/\\(.)/$1/gs;
+            } else {
+                $line =~ s/^((?:[^\\\"\'\s]|\\.)+)//s;
+                ($tmp = interpolate $1) =~ s/\\(.)/$1/gs;
+            }
+            $snippet .= $tmp;
+        }
+        push (@args, $snippet);
+    }
+    @args;
+}
+
+# Set a variable to a given value, doing the necessary checks to ensure that
+# the assignment is valid and that reserved variables aren't being assigned
+# to.  The allowable special variables are:
+#
+#     owner     Created files set to that owner.
+#     group     Created files set to that group.
+#     mode      Created files given that mode.
+#     system    Command is run on successful completion of line.
+#     force     Force updates even if nothing has (apparently) changed.
+#     younger   Only update if the source file is younger.
+#     atime     Set the atime of files and directories to this.
+#     mtime     Set the mtime of files and directories to this.
+#
+# All other all-lowercase variables are reserved and cannot be assigned to.
+sub set {
+    debug "set: @_";
+    my ($var, $value, $commandline) = @_;
+
+    # First off, check to see if a command line setting overrode.
+    if ($OVERRIDE{$var} && $. > 0) {
+        debug "  overridden by command line, ignoring";
+        return;
+    }
+
+    # Some variables are special.  All all-lowercase variables are reserved
+    # for bundle internal use.
+    if    ($var eq 'owner')   { $CONFIG{uid} = name2uid $value }
+    elsif ($var eq 'group')   { $CONFIG{gid} = name2gid $value }
+    elsif ($var eq 'mode')    { $CONFIG{mode} = oct $value     }
+    elsif ($var eq 'system')  { $CONFIG{'system'} = $value     }
+    elsif ($var eq 'force')   { $CONFIG{force} = $value        }
+    elsif ($var eq 'younger') { $CONFIG{younger} = $value      }
+    elsif ($var eq 'atime')   { $CONFIG{atime} = $value        }
+    elsif ($var eq 'mtime')   { $CONFIG{mtime} = $value        }
+    elsif ($var =~ /^[a-z0-9]+$/) {
+        my $intro = ($. > 0 ? "$0:$FILE:$." : $0);
+        die "$intro: Assignment to reserved variable $var\n";
+    } else {
+        $CONFIG{$var} = $value;
+    }
+
+    # They may have changed force or younger, so do another sanity check.
+    if ($CONFIG{force} && $CONFIG{younger}) {
+        my $intro = ($. > 0 ? "$0:$FILE:$." : $0);
+        die "$intro: force conflicts with younger\n";
+    }
+
+    # Setting a variable to the empty string undefines it, and if we've gotten
+    # this far, we've set a variable.  (uid and gid are handled separately, so
+    # skip owner and group.)  Code structure here is a bit annoying, but this
+    # is the simplest way to write this.
+    if ($value eq '' && $var ne 'owner' && $var ne 'group') {
+        undef $CONFIG{$var};
+    }
+}
+
+# Given the name of a sub to run, the number of arguments it expects, and the
+# parsed command line, take the trailing part of the command line and parse
+# out any variable settings and then pass the arguments to the sub and return
+# whatever the sub returns.  We can catch syntax errors here, and we are
+# guaranteed to have an accurate $. variable.
+sub run {
+    my ($sub, $args, @line) = @_;
+    my @args;
+    if (defined $args) {
+        if (@line < $args) { die "$0:$FILE:$.: Insufficient arguments\n" }
+        @args = splice (@line, 0, $args);
+    } else {
+        @args = @line;
+        undef @line;
+    }
+    if (@line) {
+        local %CONFIG = %CONFIG;
+        for (@line) {
+            /^(\w+)=(.*)/ or die "$0:$FILE:$.: Syntax error in $_\n";
+            set ($1 => $2);
+        }
+
+        # Call the sub from here so that it gets the localized %CONFIG.
+        &$sub (@args);
+    } else {
+        &$sub (@args);
+    }
+}
+
+##############################################################################
+# Reporting and output
+##############################################################################
+
+# Run diff on two files and print out the results, if they're fewer than 100
+# lines.  If more than 100 lines, print out the header and then a note that
+# the diff itself has been suppressed.
+sub diff {
+    my ($first, $second) = @_;
+    my $pid = open (DIFF, '-|');
+    if (!defined $pid) {
+        die "$0: cannot fork: $!\n";
+    } elsif ($pid == 0) {
+        open (STDERR, '>&STDOUT')
+            or die "$0: cannot send stderr to stdout: $!\n";
+        exec ('diff', '-u', $first, $second)
+            or die "$0: cannot exec diff: $!\n";
+    }
+    my @diff = <DIFF>;
+    close DIFF;
+
+    # Trim off the fractional seconds on the time to make the lines shorter.
+    for (@diff[0,1]) {
+        s/\.\d{5,} -/ -/;
+    }
+
+    # Print out the diff output if it's 100 lines or less.  Otherwise, print
+    # out just the header and a note that it was suppressed.
+    if (@diff > 100) {
+        print @diff[0,1];
+        print "Large diff output (", scalar (@diff), " lines) suppressed\n";
+    } else {
+        print @diff;
+    }
+}
+
+# Report on an action, changing the message if we were told to just print, and
+# suppressing the message if we were told to be quiet.
+sub report {
+    return if $CONFIG{quiet};
+    my ($message, $destination, $source, $undo) = @_;
+    if (defined $destination) {
+        if ($CONFIG{'just-print'}) {
+            $message = 'need to ' . $message;
+        } else {
+            $message =~ s/^(\w+?)e?\b/$1ing/;
+        }
+        print "$message $destination\n";
+        print "  source: $source\n" if ($source && $CONFIG{source});
+        if ($message eq 'need to update' && $CONFIG{changes} && $source) {
+            diff ($destination, $source);
+        }
+    } else {
+        print $message, "\n";
+    }
+}
+
+# Report a change that didn't happen because the destination was okay.
+sub okay {
+    return unless $CONFIG{'up-to-date'};
+    my ($destination, $source) = @_;
+    print "ok: $destination\n";
+    print "  source: $source\n" if ($source && $CONFIG{source});
+}
+
+# Print out undo information for a generic command, escaping the file name as
+# appropriate.  We have to actually go to some lengths to correctly escape a
+# newline in a file.
+sub save_command {
+    return unless $CONFIG{backup};
+    my ($command, @files) = @_;
+    for (@files) { s/([\\\"\'\$\s])/\\$1/g; s/(\\\n)/\'$1\'/g }
+    print "  undo: $command @files\n";
+}
+
+# Print out undo information for a chmod.
+sub save_chmod {
+    return unless $CONFIG{backup};
+    my ($mode, $file) = @_;
+    save_command (sprintf ('chmod %o', $mode & 07777), $file);
+}
+
+# Print out undo information for a chown.
+sub save_chown {
+    return unless $CONFIG{backup};
+    my ($uid, $gid, $file) = @_;
+    save_command ("chown $uid $gid", $file);
+}
+
+##############################################################################
+# Overloaded functions
+##############################################################################
+
+# We overload a series of core functions so that error reporting happens
+# automatically.  Note that in the process we restrict these builtins to
+# taking only one file at a time.
+use subs qw(chmod chown mkdir symlink utime);
+
+sub chmod {
+    my $status = CORE::chmod ($_[0], $_[1]);
+    unless ($status) { warn "$0: chmod $_[1] failed: $!\n" }
+    $status;
+}
+
+sub mkdir {
+    my $status = CORE::mkdir ($_[0], $_[1]);
+    unless ($status) { warn "$0: mkdir $_[0] failed: $!\n" }
+    $status;
+}
+
+# Some platforms do odd things with symlink() permissions, so although this
+# shouldn't matter, make sure our umask is 0 when we create a symlink.
+sub symlink {
+    my $umask = umask 0;
+    my $status = CORE::symlink ($_[0], $_[1]);
+    unless ($status) { warn "$0: symlink $_[1] failed: $!\n" }
+    umask $umask;
+    $status;
+}
+
+# Make life a little easier on ourselves by allowing either of the arguments
+# to be undef, in which case we set the time to the same as the current time
+# (obtained by stating the file).
+sub utime {
+    my ($atime, $mtime, $file) = @_;
+    unless (defined $atime && defined $mtime) {
+        my $stats = lstat $file;
+        if (defined $stats) {
+            $atime = first_defined ($atime, $stats->atime);
+            $mtime = first_defined ($mtime, $stats->mtime);
+        } else {
+            warn "$0: unable to stat $file: $!\n";
+            return;
+        }
+    }
+    my $status = CORE::utime ($atime, $mtime, $file);
+    unless ($status) { warn "$0: utime $file failed: $!\n" }
+    $status;
+}
+
+# chown is a little special.  Basically, unless we're root, we don't want to
+# change the owner if the owner is the same as our current effective UID.
+# Otherwise, we get an error that doesn't actually mean anything.  We also
+# don't want to actually run chown if we're changing neither the UID nor the
+# GID of the file.
+sub chown {
+    my ($uid, $gid, $file) = @_;
+    $uid = first_defined (($> != 0 && $uid == $>) ? -1 : $uid, -1);
+    $gid = first_defined ($gid, -1);
+    if ($uid == -1 && $gid == -1) { return 1 }
+    my $status = CORE::chown ($uid, $gid, $file);
+    unless ($status) { warn "$0: chown $file failed: $!\n" }
+    $status;
+}
+
+##############################################################################
+# Auxilliary functions for bundle commands
+##############################################################################
+
+# Runs $CONFIG{system}, substituting the source file (if given) for %S and the
+# destination file (if given) for %D.
+sub command {
+    return unless $CONFIG{'system'};
+    debug "command: @_";
+    my ($source, $destination) = @_;
+    my $command = $CONFIG{'system'};
+    $command =~ s/%S/$source/g if $source;
+    $command =~ s/%D/$destination/g if $destination;
+    report ('execute', $command);
+    unless ($CONFIG{'just-print'}) {
+        system $command;
+        unless ($? == 0) { warn "$0: $command returned exit status $?\n" }
+        save_command ('# ran system', $command);
+    }
+}
+
+# Creates a chain of directories as necessary so that a final destination
+# directory exists.  Note that we're assuming Unix path separators here, just
+# in case it ever eventually matters.  We optionally take a passed owner,
+# group, and mode, and take the UID and GID to use from either that or
+# %CONFIG.  The default mode, if none is given, is 0755 modified by umask.
+# Returns 1 on success (or nothing to do), undef on some failure.
+sub mkdir_chain {
+    my ($path, $owner, $group, $mode) = @_;
+    debug "mkdir_chain: @_";
+
+    # Figure out the owner, group, and mode to use.
+    $owner = first_defined ($owner, $CONFIG{uid});
+    $group = first_defined ($group, $CONFIG{gid});
+    $mode = first_defined ($mode, $CONFIG{mode});
+    my $have_mode;
+    if (defined $mode) {
+        $mode = ($mode | (($mode & 0444) >> 2));
+        $have_mode = 1;
+    } else {
+        $mode = 0755;
+    }
+
+    # Make sure we actually have directories we have to create.
+    return 1 unless ($path =~ m%/%);
+    $path =~ s%/+[^/]*$%%;
+    $path =~ s%//+%/%g;
+    return 1 if (-d $path);
+
+    # Now, do some fun magic to check each of the directories in the path in
+    # succession and make sure they all exist.  We'll assume / exists, but
+    # make sure we handle relative paths correctly.  If someone is running us
+    # with --just-print, we only report each directory we have to create once
+    # to avoid lots of spew.
+    my $directory = ($path =~ m%^/%) ? '/' : '';
+    $path =~ s%^/%%;
+    for my $element (split ('/', $path)) {
+        $directory .= $element;
+        debug "  checking $directory";
+        unless (-d $directory) {
+            report ('create', $directory . '/')
+                unless ($CONFIG{'just-print'} && $REPORTED{$directory});
+            $REPORTED{$directory} = 1;
+            next if $CONFIG{'just-print'};
+            mkdir ($directory, $mode) or return;
+            if (defined $owner || defined $group) {
+                chown ($owner, $group, $directory);
+            }
+            chmod ($mode, $directory) if $have_mode;
+            save_command ('rmdir', $directory);
+        }
+    } continue {
+        $directory .= '/';
+    }
+    1;
+}
+
+# Stat a source file, reporting warnings on various error conditions and
+# returning a File::stat object otherwise.
+sub stat_source {
+    my ($source, $follow) = @_;
+    my $stats = $follow ? stat $source : lstat $source;
+    if (!$stats) {
+        warn "$0: can't stat source file $source: $!\n";
+        return;
+    } elsif (!-f _ && ($follow || !-l _)) {
+        warn "$0: $source is not a file\n";
+        return;
+    }
+    $stats;
+}
+
+# Stat a destination file, reporting warnings on various error conditions and
+# returning a File::stat object otherwise.
+sub stat_dest {
+    my $destination = shift;
+    my $stats = lstat $destination;
+    if (-e _ && !$stats) {
+        warn "$0: can't stat destination file $destination: $!\n";
+        return;
+    } elsif (-e _ && !-f _ && !-l _) {
+        warn "$0: $destination is not a regular file\n";
+        return;
+    }
+    defined $stats ? $stats : 'nonexistent';
+}
+
+# Stat a target file, reporting warnings on various error conditions and
+# returning a File::stat object otherwise.
+sub stat_target {
+    my $file = shift;
+    my $stats = stat $file;
+    if (-e _ && !$stats) {
+        warn "$0: can't stat file $file: $!\n";
+        return;
+    }
+    $stats;
+}
+
+# Save a file as a backup (used when --backup is used instead of unlink).  A
+# file named $file is saved as ".backup.$file.$time" where $time is the
+# current time.  Return undef on failure, true on success.  Takes a second
+# argument that, if true, says to use copy instead of rename to make the
+# backup.
+sub save_file {
+    return 1 unless $CONFIG{backup};
+    debug "save: @_";
+    my ($file, $copy) = @_;
+    my $stats = stat_dest $file;
+    return 1 unless ref $stats;
+
+    # Build our backup file name, keeping in mind $file is a full path.
+    my $backup = $file . '.' . time . '.' . int rand 1000;
+    $backup =~ s%/([^/]+)$%/.b.$1%;
+
+    # Create the backup by renaming, so we don't have to deal with differences
+    # between symlinks and regular files, etc.  This is safe since we're doing
+    # this in the same directory.  If the backup file already exists, we don't
+    # replace it.
+    if (-l $backup || -e _) {
+        warn "$0: backup file $backup already exists\n";
+        return;
+    }
+    unless ($copy ? copy ($file, $backup) : rename ($file, $backup)) {
+        warn "$0: unable to backup $file: $!\n";
+        return;
+    }
+
+    # In case we're closing a security hole, make sure the old file is
+    # inaccessible.  Also set its timestamps to match the original if we
+    # copied.
+    if (!-l $backup) {
+        chmod (0, $backup);
+        utime ($stats->atime, $stats->mtime, $backup) if $copy;
+    }
+
+    # Note that we only need to chown if we backed up by copying; otherwise,
+    # we backed up by renaming which preserves ownership.  We have to delete
+    # the file we're restoring first, since rename won't overwrite.
+    if (!-l _) {
+        save_chmod ($stats->mode, $file);
+        save_chown ($stats->uid, $stats->gid, $file) if $copy;
+    }
+    save_command ('rename', $backup, $file);
+    save_command ('delete', $file);
+    1;
+}
+
+##############################################################################
+# Bundle commands
+##############################################################################
+
+# Add lines to an existing file.  We scan the entire file first to see if it
+# already contains any of the lines that we're going to add and don't add
+# those lines that already occur elsewhere in the file (unless force is set,
+# of course).  When force is set, addline is identical to append.
+sub do_addline {
+    debug "do_addline: @_";
+    my $file = shift;
+    my @lines = map { $_ . "\n" } @_;
+
+    # We need to open the file either way, to check to see if we need to
+    # append or to do the append.  We don't need write access to just check,
+    # but it's easier to only do one open.  The check will therefore fail
+    # unless you have permissions to do the addline.
+    if (sysopen (FILE, $file, O_RDWR | O_APPEND)) {
+        unless ($CONFIG{force}) {
+            my $line;
+            sysseek (FILE, 0, 0);
+            while (defined ($line = <FILE>)) {
+                if (@lines == 1) {
+                    undef @lines if ($line eq $lines[0]);
+                } else {
+                    @lines = grep { $_ ne $line } @lines;
+                }
+                last unless @lines;
+            }
+            unless (@lines) {
+                okay $file;
+                return;
+            }
+        }
+        report ('add lines to', $file);
+        return if $CONFIG{'just-print'};
+        save_file ($file, 1) or return;
+        my $text = join ('', @lines);
+        if (syswrite (FILE, $text, length $text)) {
+            command (undef, $file);
+        } else {
+            warn "$0: can't append to $file: $!\n";
+        }
+        close FILE;
+    } else {
+        warn "$0: can't open $file: $!\n";
+    }
+}
+
+# Append strings to an existing file.  We read the end of the file to see if
+# it contains the string we're going to append and consider the file okay if
+# it does (unless force is set, of course).  This means that no more than one
+# append directive for any given file should be in one bundle file if the
+# bundle file should do nothing when already applied.
+sub do_append {
+    debug "do_append: @_";
+    my $file = shift;
+    my $text = join ("\n", @_, '');
+
+    # We need to open the file either way, to check to see if we need to
+    # append or to do the append.  We don't need write access to just check,
+    # but it's easier to only do one open.  The check will therefore fail
+    # unless you have permissions to do the append.
+    if (sysopen (FILE, $file, O_RDWR | O_APPEND)) {
+        unless ($CONFIG{force}) {
+            sysseek (FILE, -(length $text), 2);
+            my $data;
+            sysread (FILE, $data, length $text) or undef $data;
+            if ($data eq $text) {
+                okay $file;
+                return;
+            }
+        }
+        report ('append to', $file);
+        return if $CONFIG{'just-print'};
+        save_file ($file, 1) or return;
+        if (syswrite (FILE, $text, length $text)) {
+            command (undef, $file);
+        } else {
+            warn "$0: can't append to $file: $!\n";
+        }
+        close FILE;
+    } else {
+        warn "$0: can't open $file: $!\n";
+    }
+}
+
+# chmod a file.  Takes the mode and the file as parameters.
+sub do_chmod {
+    debug "do_chmod: @_";
+    my $mode = shift;
+    my $file = shift;
+    my $stats = stat_target $file or return;
+
+    # Figure out the desired mode, allowing for +/- mode masks in $mode as
+    # well as absolute modes.
+    $mode =~ s/^([-+])//;
+    my $sign = $1;
+    $mode = oct $mode;
+    if (defined $sign) {
+        my $base = ($stats->mode & 07777);
+        $mode = ($sign eq '-') ? ($base & ~$mode) : ($base | $mode);
+    }
+
+    # Check to see if we have anything to do, and if so, do the chmod.
+    if ($CONFIG{force} || ($stats->mode & 07777) != $mode) {
+        report ('chmod', $file);
+        return if $CONFIG{'just-print'};
+        if (chmod ($mode, $file)) {
+            save_chmod ($stats->mode, $file);
+            command (undef, $file);
+        }
+    } else {
+        okay $file;
+    }
+}
+
+# chown a file.  Takes the owner, group, and file as parameters.
+sub do_chown {
+    debug "do_chown: @_";
+    my $owner = name2uid shift;
+    my $group = name2gid shift;
+    my $file = shift;
+    my $stats = stat_target $file or return;
+
+    # We don't want to incorrectly decide we need to chmod when $owner or
+    # $group is undefined or -1.  Our overridden chown call turns undef back
+    # into -1 for the system call.
+    $owner = undef if $owner == -1;
+    $group = undef if $group == -1;
+    my $owner_ok = (!defined $owner || $stats->uid == $owner);
+    my $group_ok = (!defined $group || $stats->gid == $group);
+    if ($CONFIG{force} || !$owner_ok || !$group_ok) {
+        report ('chown', $file);
+        return if $CONFIG{'just-print'};
+        if (chown ($owner, $group, $file)) {
+            save_chown ($stats->uid, $stats->gid, $file);
+            command (undef, $file);
+        }
+    } else {
+        okay $file;
+    }
+}
+
+# Delete a file.
+sub do_delete {
+    debug "do_delete: @_";
+    my ($file) = @_;
+    if (-l $file || -e _) {
+        report ('delete', $file);
+        return if $CONFIG{'just-print'};
+        if ($CONFIG{backup} ? save_file $file : unlink $file) {
+            command (undef, $file);
+        } else {
+            warn "$0: can't unlink $file: $!\n" unless $CONFIG{backup};
+        }
+    } else {
+        okay $file;
+    }
+}
+
+# Create a directory.  The default mode (if none is specified via other means)
+# is 0755, modified by umask.  If the directory already exists and we have a
+# mode or ownership set or are changing the time on things, make sure it
+# matches.
+sub do_dir {
+    debug "do_dir: @_";
+    my ($dir) = @_;
+    my $update;
+    if (!-d $dir) {
+        $update = 2;
+        mkdir_chain $dir . '/' or return;
+        return if $CONFIG{'just-print'};
+        if (defined $CONFIG{uid} || defined $CONFIG{gid}) {
+            chown ($CONFIG{uid}, $CONFIG{gid}, $dir);
+        }
+        if (defined $CONFIG{mode}) { chmod ($CONFIG{mode}, $dir) }
+        if (defined $CONFIG{atime} || defined $CONFIG{mtime}) {
+            utime ($CONFIG{atime}, $CONFIG{mtime}, $dir);
+        }
+    } else {
+        my $stats = stat_target $dir;
+        my $owner = first_defined ($CONFIG{uid}, $stats->uid);
+        my $group = first_defined ($CONFIG{gid}, $stats->gid);
+        my $mode = first_defined ($CONFIG{mode}, $stats->mode & 07777);
+        my $atime = first_defined ($CONFIG{atime}, $stats->atime);
+        my $mtime = first_defined ($CONFIG{mtime}, $stats->mtime);
+        if (($owner != -1 && $owner != $stats->uid)
+            || ($group != -1 && $group != $stats->gid)) {
+            $update = 1;
+            report ('chown', $dir . '/');
+            if (!$CONFIG{'just-print'} && chown ($owner, $group, $dir)) {
+                save_chown ($stats->uid, $stats->gid, $dir);
+                $update = 2;
+            }
+        }
+        if ($mode != ($stats->mode & 07777)) {
+            report ('chmod', $dir . '/');
+            $update = 1;
+            if (!$CONFIG{'just-print'} && chmod ($mode, $dir)) {
+                save_chmod ($stats->mode, $dir);
+                $update = 2;
+            }
+        }
+        if ($atime != $stats->atime || $mtime != $stats->mtime) {
+            report ('update', $dir . '/') unless $update;
+            $update = 1;
+            if (!$CONFIG{'just-print'} && utime ($atime, $mtime, $dir)) {
+                $update = 2;
+            }
+        }
+
+        # If we didn't change anything, the directory was okay.
+        okay $dir unless $update;
+    }
+
+    # Run our command, if any, if we changed anything.
+    command (undef, $dir) if ($update == 2);
+}
+
+# Print something to the screen if we're not supposed to be quiet.
+sub do_echo {
+    debug "do_echo: @_";
+    print "@_\n" unless $CONFIG{quiet};
+    save_command ('# echoed', @_);
+}
+
+# Sync a file with another file.  Takes the source file and the destination
+# file and then any additional arguments as parameters.
+sub do_file {
+    debug "do_file: @_";
+    my ($source, $dest) = @_;
+    my $s_stats = stat_source ($source, 1) or return;
+    my $d_stats = stat_dest $dest or return;
+
+    # Figure out the owner, group, and mode to use for the created file.
+    my $owner = first_defined ($CONFIG{uid}, $s_stats->uid);
+    my $group = first_defined ($CONFIG{gid}, $s_stats->gid);
+    my $mode = first_defined ($CONFIG{mode}, ($s_stats->mode & 07777));
+    my $atime = first_defined ($CONFIG{atime}, $s_stats->atime);
+    my $mtime = first_defined ($CONFIG{mtime}, $s_stats->mtime);
+
+    # Now, let's see if we have any actual work we have to do.  Currently, we
+    # just check to see if either the times or the sizes are different and act
+    # accordingly; at some point in the future, we may want to do a real diff
+    # or the moral equivalent.
+    my $update;
+    if (!-e _ || $CONFIG{force} || $mtime != $d_stats->mtime
+        || $s_stats->size != $d_stats->size) {
+        # First, check to see if the destination file is newer, in which case
+        # we don't do anything if --younger was specified.
+        if (-e _ && $CONFIG{younger} && $mtime < $d_stats->mtime) {
+            okay ($dest, $source);
+            return;
+        }
+
+        # Make sure we have the leading directories for the destination.
+        my $exists = -e _;
+        mkdir_chain ($dest, $owner, $group, $mode) if (!$exists);
+
+        # Print out output and bail if we're not changing anything.
+        report ($exists ? 'update' : 'install', $dest, $source);
+        return if $CONFIG{'just-print'};
+
+        # Now copy in the new file, giving it a temporary name so that we can
+        # set permissions.
+        my $destname = "$dest.bundle.$$";
+        unless (copy ($source, $destname)) {
+            warn "$0: copy to $destname failed\n";
+            unlink $destname or warn "$0: can't unlink $destname: $!\n";
+            return;
+        }
+
+        # Set the owner, group, times, and permissions on the new copy to
+        # match the old ones or the specified ones, whichever.
+        utime ($atime, $mtime, $destname);
+        chown ($owner, $group, $destname);
+        chmod ($mode, $destname);
+
+        # Finally, move the old file out and the new file in.
+        unless (save_file ($dest) && rename ($destname, $dest)) {
+            warn "$0: rename to $dest failed: $!\n";
+            unlink $destname or warn "$0: can't unlink $destname: $!\n";
+            return;
+        }
+        save_command ('delete', $dest) unless $exists;
+        $update = 2;
+    } else {
+        # Make sure the permissions and ownership are the same.
+        if (($owner != -1 && $owner != $d_stats->uid)
+            || ($group != -1 && $group != $d_stats->gid)) {
+            $update = 1;
+            report ('chown', $dest, $source);
+            if (!$CONFIG{'just-print'} && chown ($owner, $group, $dest)) {
+                save_chown ($d_stats->uid, $d_stats->gid, $dest);
+                $update = 2;
+            }
+        }
+        if ($mode != ($d_stats->mode & 07777)) {
+            report ('chmod', $dest, $source) unless $update;
+            $update = 1;
+            if (!$CONFIG{'just-print'} && chmod ($mode, $dest)) {
+                save_chmod ($d_stats->mode, $dest);
+                $update = 2;
+            }
+        }
+        okay ($dest, $source) unless $update;
+    }
+
+    # If we changed something, run the post-command.
+    command ($source, $dest) if ($update == 2);
+}
+
+# Ensure that a file exists.  If it does, do nothing; otherwise, create an
+# empty file with the appropriate owner and permissions (permissions of 0644
+# if none are otherwise specified).
+sub do_filexists {
+    debug "do_filexists: @_";
+    my ($file) = @_;
+    if (-l $file || -e _) {
+        if (-f _) {
+            okay $file;
+        } else {
+            warn "$0: $file is not a file\n";
+        }
+    } else {
+        my $mode = first_defined ($CONFIG{mode}, 0644);
+        mkdir_chain $file;
+        report ('create', $file);
+        return if $CONFIG{'just-print'};
+        if (sysopen (FILE, $file, O_CREAT | O_EXCL | O_WRONLY, $mode)) {
+            close FILE;
+            chown ($CONFIG{uid}, $CONFIG{gid}, $file);
+            chmod ($mode, $file);
+            if (defined $CONFIG{atime} || defined $CONFIG{mtime}) {
+                utime ($CONFIG{atime}, $CONFIG{mtime}, $file);
+            }
+            save_command ('delete', $file);
+            command (undef, $file);
+        } else {
+            warn "$0: can't create $file: $!\n";
+        }
+    }
+}
+
+# Runs a file, line by line, through the given Perl code as a filter,
+# basically as if perl -i -pe 'BEGIN { init } code' were run on the file.  The
+# initialization code is the first argument, the filter code the second
+# argument.  Note that the filter is done *in memory* because we want to see
+# if we actually changed anything before writing anything into the file system
+# (and we want to see if we're going to change anything even when running
+# under just-print).  This means that filter should not be used on large files
+# as you will run bundle out of memory.
+sub do_filter {
+    debug "do_filter: @_";
+    my ($file, $init, $code) = @_;
+
+    # Wrap the code in an anonymous sub for ease of use, make sure it
+    # compiles, and run the initialization code.  If anything fails, it's a
+    # fatal syntax error.
+    my $sub = eval "{ $init; sub { $code } }";
+    if ($@) { die "$0: invalid filter code\n$@\n" }
+
+    # Now, open our target file and read it in a line at a time, passing each
+    # line to our filter and then pushing the results into @data.  As we do
+    # each line, we compare it against the original; only if we see a
+    # difference have we actually changed the file.
+    if (-l $file || !-f $file) {
+        warn "$0: $file is not a regular file\n";
+        return;
+    }
+    my $stats = stat_target $file;
+    unless (sysopen (FILE, $file, O_RDONLY)) {
+        warn "$0: can't open $file: $!\n";
+        return;
+    }
+
+    # Wrap the actual read through the file in a block so that we can localize
+    # $. without interfering with warning messages printed out elsewhere in
+    # this sub.
+    my (@data, $changed);
+    {
+        local ($_, $.);
+        while (<FILE>) {
+            my $original = $_;
+            &$sub;
+            $changed ||= ($original ne $_);
+            push (@data, $_);
+        }
+        close FILE;
+    }
+
+    # If we made a change, replace the file with its filtered version.
+    if ($changed || $CONFIG{force}) {
+        report ('filter', $file);
+        return if $CONFIG{'just-print'};
+        unless ($CONFIG{backup} ? save_file $file : unlink $file) {
+            warn "$0: can't remove $file: $!\n" unless $CONFIG{backup};
+            return;
+        }
+        my $mode = $stats->mode & 07777;
+        if (sysopen (FILE, $file, O_CREAT | O_EXCL | O_WRONLY, $mode)) {
+            chown ($stats->uid, $stats->gid, $file);
+            chmod ($mode, $file);
+            my $success;
+          WRITE: {
+                for (@data) {
+                    my $status = syswrite (FILE, $_, length $_);
+                    last WRITE unless defined $status;
+                }
+                close FILE or last WRITE;
+                $success = 1;
+            }
+            if ($success) {
+                command (undef, $file);
+            } else {
+                close FILE;
+                warn "$0: writing to $file failed: $!\n";
+            }
+        } else {
+            warn "$0: can't create $file: $!\n";
+        }
+    } else {
+        okay $file;
+    }
+}
+
+# Rename a file to something else.  This will fail if the destination already
+# exists (use delete to get rid of it first if necessary).  We assume that
+# we've already done this if the destination exists and the source does not.
+sub do_rename {
+    debug "do_rename: @_";
+    my ($source, $destination) = @_;
+
+    # Check to see if the file has already been renamed.  Make sure we don't
+    # follow the symlink.
+    if (-l $destination || -e _) {
+        if (!-l $source && !-e _) {
+            okay $destination;
+        } else {
+            warn "$0: can't rename to $destination, already exists\n";
+        }
+    } else {
+        if (!-l $source && !-e _) {
+            warn "$0: can't rename $source, file doesn't exist\n";
+        } else {
+            report ('rename', $source);
+            return if $CONFIG{'just-print'};
+            if (move ($source, $destination)) {
+                save_command ('rename', $destination, $source);
+                command ($source, $destination);
+            } else {
+                warn "$0: rename of $source failed: $!\n";
+            }
+        }
+    }
+}
+
+# Delete a directory
+sub do_rmdir {
+    debug "do_rmdir: @_";
+    my ($directory) = @_;
+    my $stats = lstat $directory;
+    if (defined $stats && -d _) {
+        report ('delete', $directory . '/');
+        return if $CONFIG{'just-print'};
+        if (rmdir $directory) {
+            if ($CONFIG{backup}) {
+                my $owner = sprintf ('owner=%d', $stats->uid);
+                my $group = sprintf ('group=%d', $stats->gid);
+                my $mode = sprintf ('mode=%o', $stats->mode & 07777);
+                my $atime = sprintf ('atime=%d', $stats->atime);
+                my $mtime = sprintf ('mtime=%d', $stats->mtime);
+                save_command ('dir', $directory, $owner, $group, $mode,
+                              $atime, $mtime);
+            }
+            command (undef, $directory);
+        } else {
+            warn "$0: can't rmdir $directory: $!\n";
+        }
+    } elsif (defined $stats) {
+        warn "$0: $directory is not a directory\n";
+    } else {
+        okay $directory;
+    }
+}
+
+# This creates a symbolic link with the given value at destination. It takes
+# an optional additional parameter giving the source file if any in order to
+# get the messages right.  Note that no effort is made to change the
+# permissions or ownership on a symbolic link.
+sub do_symlink {
+    my ($value, $dest, $source) = @_;
+    debug "do_symlink: @_";
+
+    # Make sure the destination is valid.
+    if (!-l $dest && -e _ && !-f _) {
+        warn "$0: $dest is not a regular file\n";
+        return;
+    }
+
+    # Create the symlink, unlinking the destination if it exists and it
+    # differs.
+    if (-l _ && !$CONFIG{force} && readlink $dest eq $value) {
+        okay ($dest, $source);
+    } else {
+        my $exists = -e _;
+        mkdir_chain $dest;
+        report ($exists ? 'update link' : 'install link', $dest, $source);
+        return if $CONFIG{'just-print'};
+        if ($exists) {
+            unless ($CONFIG{backup} ? save_file $dest : unlink $dest) {
+                warn "$0: can't unlink $dest: $!\n";
+                return;
+            }
+        }
+        symlink ($value, $dest);
+        save_command ('delete', $dest);
+        command (undef, $dest);
+    }
+}
+
+# Sync one symlink with another (in other words, use the value of the source
+# symlink to create the destination link).
+sub do_linkval {
+    debug "do_linkval: @_";
+    my ($source, $destination) = @_;
+    my $value = readlink $source;
+    if ($value) {
+        do_symlink ($value, $destination, $source);
+    } else {
+        warn "$0: can't read source link $source\n";
+    }
+}
+
+# Run a given command.  This is unconditional; there's nothing we have to
+# check to see whether or not we can do it.
+sub do_system {
+    debug "do_system: @_";
+    report ("system: @_");
+    return if $CONFIG{'just-print'};
+    system @_ and warn "$0: @_ returned exit status $?\n";
+    save_command ('# ran system', @_);
+}
+
+##############################################################################
+# Main routine
+##############################################################################
+
+# Make sure error messages come at the right time.
+$| = 1;
+
+# Read in the command line and default to reading bundle commands from STDIN
+# if no bundle file was given.  We have to scan @ARGV for a single dash first,
+# since Getopt::Long can't handle it.
+my $bundle;
+for (my $i = 0; $i < @ARGV; $i++) {
+    if ($ARGV[$i] eq '-') {
+        $bundle = '-';
+        splice (@ARGV, $i, 1);
+        last;
+    }
+}
+read_options;
+$bundle = @ARGV ? shift : '-' unless $bundle;
+
+# Change directories if requested.
+if ($CONFIG{cwd}) {
+    chdir $CONFIG{cwd} or
+        die "$0: can't change directory to $CONFIG{cwd}: $!\n";
+}
+
+# Find and open the bundle file.  Make sure we correctly handle a bundle file
+# name of -, representing STDIN.
+if ($bundle eq '-') {
+    $FILE = '-';
+    open (BUNDLE, '<&STDIN') or die "$0: can't dup stdin: $!\n";
+} else {
+    $FILE = find_bundle ($bundle) or die "$0: can't find bundle $bundle\n";
+    open (BUNDLE, $FILE) or die "$0: can't open $FILE: $!\n";
+}
+
+# Now loop through the bundle, ignoring initial and trailing whitespace and
+# lines beginning with a #.  Join together lines that end in backslashes to
+# allow continuation.
+while (<BUNDLE>) {
+    next if (/^\s*\#/ or /^\s+$/);
+    s/^\s+//;
+    s/\s+$//;
+    while (s/\\$//) { $_ .= "\n" . <BUNDLE>; s/\s+$// }
+
+    # Figure out what we're supposed to do and do it.  We call a separate
+    # function to parse out the line.
+    my @command = parse_line ($_);
+
+    # Decide what to do based on the initial portion of the command.  When
+    # running commands, we pass them through run, which is told how many
+    # arguments they take and handles one-line variable settings at the end of
+    # the command.  An undef means that the command takes any number of
+    # arguments and doesn't allow variable setting.
+    my $command = shift @command;
+    if    ($command eq 'addline')   { run (\&do_addline, undef, @command) }
+    elsif ($command eq 'append')    { run (\&do_append,  undef, @command) }
+    elsif ($command eq 'chmod')     { run (\&do_chmod,       2, @command) }
+    elsif ($command eq 'chown')     { run (\&do_chown,       3, @command) }
+    elsif ($command eq 'delete')    { run (\&do_delete,      1, @command) }
+    elsif ($command eq 'dir')       { run (\&do_dir,         1, @command) }
+    elsif ($command eq 'echo')      { run (\&do_echo,    undef, @command) }
+    elsif ($command eq 'file')      { run (\&do_file,        2, @command) }
+    elsif ($command eq 'filexists') { run (\&do_filexists,   1, @command) }
+    elsif ($command eq 'filter')    { run (\&do_filter,      3, @command) }
+    elsif ($command eq 'link')      { run (\&do_symlink,     2, @command) }
+    elsif ($command eq 'linkval')   { run (\&do_linkval,     2, @command) }
+    elsif ($command eq 'rename')    { run (\&do_rename,      2, @command) }
+    elsif ($command eq 'rmdir')     { run (\&do_rmdir,       1, @command) }
+    elsif ($command eq 'symlink')   { run (\&do_symlink,     2, @command) }
+    elsif ($command eq 'system')    { run (\&do_system,  undef, @command) }
+    elsif ($command =~ /^(\w+)=(.*)$/)                   { set ($1 => $2) }
+    else         { die "$0:$bundle:$.: unknown bundle command $command\n" }
+}
+
+# All done.  Close the bundle file and exit.
+close BUNDLE;
+__END__
+
+##############################################################################
+# Documentation
+##############################################################################
+
+=head1 NAME
+
+bundle - Maintains a "bundle" of files
+
+=head1 SYNOPSIS
+
+bundle [B<-cdfhnopqsuyv>] [B<-D>I<variable>=I<value>] [I<bundle>[.b]]
+
+=head1 DESCRIPTION
+
+B<bundle> is designed for two major purposes.  It can be used to track a
+bundle of files and synchronize them with a master repository whenever
+anything changes, and it can be used to make incremental changes in such a
+way as to maintain change history and be able to apply all of the changes
+at once.
+
+B<bundle> functions on bundle files, which are files of bundle commands,
+one per line.  The most frequently used command specifies a source file
+and a destination file and tells bundle to update the destination file to
+be the same as the source file if they're different, but there are a
+variety of other commands for maintaining symbolic links, renaming,
+deleting, chowning, or chmoding files, running system commands, and other
+such things.
+
+This flexibility allows B<bundle> to be used as an installation tool.  All
+that's needed is a bundle file that lists source files and where they
+should be installed, and if anything changes in the master distribution,
+B<bundle> can just be run against the same file again to pull in any files
+that have changed.
+
+It also lets B<bundle> be used as an incremental change system, since the
+bundle file can list precisely what should be changed on a system,
+including references to the files that are needed as part of the change,
+and then all the incremental changes can be concatenated together to
+create a bundle file that will apply all changes to date.
+
+If B<bundle> isn't given a bundle file on the command line, or if the file
+given is "-", B<bundle> will read and execute bundle commands from stdin.
+
+=head1 OPTIONS
+
+B<bundle> takes the following command-line options.  B<--force> and
+B<--younger> can also be set in bundle files themselves (see the
+documentation of variables below below).  Settings in the bundle file
+itself for those two options override command-line flags.
+
+=over 4
+
+=item B<-h>, B<--help>
+
+Print out this documentation (which is done simply by feeding the script
+to C<perldoc -t>.
+
+=item B<-v>, B<--version>
+
+Print out the version of B<bundle> and exit.
+
+=item B<-b>, B<--backup>
+
+Save backup information.  Any files that are replaced, rather than being
+deleted, will be renamed to F<.b.FILE.TIME.RANDOM> where FILE is the
+original file name, TIME is the current time, and RANDOM is a random
+number between 0 and 1000.  In addition, full details on how to reverse
+the change (in the form of bundle commands) will be printed out prefixed
+by S<" undo: "> as the bundle commands are executed.  Normally, each undo
+command is on a single line, but if the undo information line ends in a \,
+the next line is also part of the undo information and special care should
+be taken to include it in any backout bundle.
+
+The backup bundle is generated in reverse order.  To convert the output of
+C<bundle -b> into a backup bundle, pipe it through the following commands:
+
+    grep '^  undo: ' | sed 's/^  undo: //' | tac
+
+This does not work if there are any lines ending in \; in that case,
+something more complex will be needed.
+
+Note that system commands (or commands run as a result of setting the system
+variable) are not reversible and will result in comments in the backout
+bundle stating what command was run.  Note also that if this option is used,
+backup files will be saved in the same directory as the original file, thus
+making it impossible to delete a file in a directory and then the directory
+itself (since the directory won't be empty).
+
+=item B<-C> I<directory>, B<--cwd> I<directory>
+
+Change the current working directory to the specified directory before
+finding and the running the bundle.
+
+=item B<-c>, B<--changes>
+
+Show the changes between the current files and the files that will be
+installed.  Only shows changes for files installed with the B<file>
+command where the new file will overwrite an existing file.  Changes are
+given as unified diffs (except where the files are binary), but if the
+diff is longer than 100 lines, just the length of the diff will be shown.
+
+Enabling this option automatically enables B<-n> as well.  Using this option
+requires that the first B<diff> program found in your path support the B<-u>
+option.  There is currently no way to change the preferred diff format.
+
+=item B<-D> I<variable>=I<value>, B<--define> I<variable>=I<value>
+
+Defines the variable I<variable> to be equal to I<value>.  This is exactly
+equivalent to a variable assignment inside the bundle file itself, with
+all the same special variables; see below for full details.
+
+=item B<-d>, B<--debug>
+
+Enable debugging.  This causes B<bundle> to print out quite a few
+additional messages about what it's doing and what internal functions it's
+calling, useful for debugging problems in either a bundle file or in
+bundle itself.
+
+=item B<-f>, B<--force>
+
+Force all target files to be updated, even if they appear to be the same
+as the source files.  This can also be set in the bundle file itself, and
+the setting in the bundle file overrides the command line.
+
+=item B<-n>, B<--just-print>, B<--dry-run>
+
+Do all of the checks that would normally be done, but rather than taking
+any actual actions, just print out what would have been done.  Think
+C<make -n>.  This should be used to check the actions of a bundle file
+before it's used for the first time.
+
+=item B<-q>, B<--quiet>
+
+Don't print the normal report of what's being done.  Only errors will be
+printed.  This flag also suppresses the output of B<echo> commands in the
+bundle file.
+
+=item B<-s>, B<--source>
+
+Report the source location of a file when it is installed.  By default,
+only the destination location is printed.
+
+=item B<-u>, B<--up-to-date>
+
+Report those actions which were unnecessary as well as those which were
+done (in other words, report actions which weren't performed because the
+targets were already up to date).
+
+=item B<-y>, B<--younger>
+
+By default, files will be installed if the timestamp of the source differs
+from the timestamp of the target.  With this option, a file will only be
+installed if the source is newer than the target.  Combining this option
+with B<--force> makes no sense.  This can also be set in the bundle file
+itself, and the setting in the bundle file overrides the command line.
+
+=back
+
+=head1 BUNDLE FILES
+
+A bundle file is just a sequence of commands or variable settings, one per
+line, optionally interspersed with comments.  Any line beginning with C<#>
+is taken to be a comment, and lines can be continued on the next line by
+putting C<\> at the end of a line.  The trailing backslash will be
+stripped, but it's possible to put a newline inside a string by having the
+line continuation occur inside a quoted string.
+
+The individual arguments to commands are whitespace-separated; if it's
+necessary to give an argument that contains whitespace, the argument can
+be quoted.  Both single and double quotes are supported; double-quoted
+strings undergo variable interpolation, while single-quoted strings do
+not.  Inside double quotes, C<\> will escape any character, including
+quotes.  Inside single quotes, C<\> will escape C<\> or C<'> but not any
+other character; C<\> followed by any other character in single quotes
+will be taken to be a literal backslash followed by that character.  For
+more information on variable interpolation, see the section on variables
+below.
+
+The following commands are recognized:
+
+=over 4
+
+=item addline FILE LINE [ LINE ... ]
+
+Adds each LINE to the end of FILE if and only if that line doesn't already
+occur somewhere in FILE.  If B<--force> is set, FILE is not checked first
+and B<addline> acts identically to B<append>.  Otherwise, FILE is scanned
+a line at a time, and if any line in the list of lines to add to the file
+is found already in the file, it's removed from that list.  Then the
+remaining lines are appended in order to the end of FILE.  Because the
+entire file is checked, one can have multiple B<addline> commands
+affecting the same file and still run the bundle file repeatedly, unlike
+B<append>.
+
+Note that since it takes a variable number of lines as arguments,
+B<addline> does not support setting variables on the same line as the
+command.  For information on how to set B<force> or B<system> for just an
+B<addline> line, see the section on variables below.
+
+=item append FILE LINE [ LINE ... ]
+
+Appends each LINE to the end of FILE, separated by newlines.  Unless
+B<--force> is set, FILE is checked first and if it ends in precisely the
+text that would be appended to it, it is considered to be up to date and
+no action is taken.  The practical implication of this is that one should
+only have one B<append> command per affected file in a bundle file if one
+wishes to be able to run the bundle file repeatedly without having more
+text appended each time; if that isn't what you want, B<addline> may be
+better.  On the other hand, B<append> is faster than B<addline>,
+particularly for large files.  (If lines should be appended every time the
+bundle file is run, the B<force> variable should be set for just the
+B<append> line.)
+
+Note that since it takes a variable number of lines as arguments,
+B<append> does not support setting variables on the same line as the
+command.  For information on how to set B<force> or B<system> for just an
+B<append> line, see the section on variables below.
+
+=item chmod MODE FILE
+
+Normally, given a MODE, changes the permissions on FILE to be MODE (where
+MODE is assumed to be in octal).  If MODE begins with +, it is taken to be
+a mask, and the permissions on FILE are changed to be the same as they
+currently are but with all the bits in MODE turned on.  If MODE begins
+with -, the permissions on FILE are changed so that all the bits in MODE
+are off.
+
+For example, to turn on the setuid bit of F<file> and turn off the group
+and world read bits, leaving the rest of the permissions unchanged, use
+the following two chmod commands:
+
+    chmod +4000 file
+    chmod -0044 file
+
+Note that leading zeroes on MODE are allowed but not required; it's always
+assumed to be in octal.
+
+=item chown USER GROUP FILE
+
+Changes the ownership of FILE to user USER and group GROUP.  The user and
+group can be either numeric or words (in which case, they're translated to
+numbers by using C<getpwnam()> and C<getgrnam()>).  Note that either USER
+or GROUP may be -1, indicating no change should be made to that portion of
+the file ownership.
+
+For example:
+
+    chown root -1 file
+
+will change the ownership of F<file> to be root, but will leave the group
+ownership unchanged.
+
+=item delete FILE
+
+Deletes FILE.  (This command won't work on directories; to remove a
+directory, use B<rmdir> instead.)
+
+=item dir DIRECTORY
+
+Creates the directory DIRECTORY (and any missing directories in the full
+path, recursively if necessary, similar to the function of C<mkdir -p>).
+The default permissions (if B<mode> isn't set) are 0755 modified by umask.
+If the directory already exists, and if any of B<owner>, B<group>,
+B<mode>, B<atime>, or B<mtime> are set and differ from the stats of the
+existing directory, it is updated to match the desired values.
+
+Note that if any setting of the B<mode> variable is in effect, it is used
+verbatim by the B<dir> command.  If you've set B<mode> to something
+appropriate for regular files, this may result in a directory without
+execute permission, which is generally not what you want.  One alternative
+is to always use an explicit setting of B<mode> on the same line as the
+B<dir> command; for details on how to do that, see below.  Another
+alternative is to not use B<dir> commands and just let the directories be
+created automatically when something is put in them with a B<file>
+command or another similar command, since then the created directories
+will have execute permission granted corresponding to the read permission
+granted in the mode of the file being created.
+
+Note also that the setting of B<mode> affects the final directory in the
+chain, but any created directories above that use the same magic
+determination of mode as ones created by B<file> do.  This is arguably a
+bug.
+
+=item echo TEXT [ TEXT ... ]
+
+If B<--quiet> was not specified, prints TEXT to stdout.
+
+=item file SOURCE TARGET
+
+Installs the file SOURCE as TARGET.  In other words, if TARGET doesn't
+exist, or if TARGET exists but has a different timestamp or size than
+SOURCE, SOURCE is copied to TARGET (deleting TARGET if necessary).  Any
+directories that are part of the path TARGET which don't already exist are
+created in the process.  The ownership, permissions, atime, and mtime of
+TARGET will be set to be the same as SOURCE unless overridden by variable
+settings.
+
+=item filexists FILE
+
+Ensures that FILE exists.  If it is present and is a regular file, it is
+considered up to date (permissions and ownership are not checked).  If it
+doesn't exist, a zero-length file named FILE is created.  The default
+permissions (if B<mode> isn't set) will be 0644 modified by umask.  If it
+exists and isn't a regular file, an error message will be printed.
+
+=item filter FILE INIT FILTER
+
+Sets up a lexical block, executes INIT within that block, and then
+executes FILTER on each line of FILE, overwriting FILE with the results,
+in the same lexical block that INIT ran in.  This is mostly (but not quite
+completely) equivalent to:
+
+    perl -i -pe 'BEGIN { INIT } FILTER' FILE
+
+The mode and permissions of FILE are preserved.  INIT and FILTER can be
+any valid Perl code; inside FILTER, C<$_> will contain the current line of
+FILE and modifying C<$_> will modify the current line of FILE.  C<BEGIN>
+and C<END> blocks are unlikely to do what you expect.  All code will be
+executed in the context of the running B<bundle> process, so it's possible
+to severely confuse B<bundle> or worse using this directive.  Be cautious
+about how much you do, and declare any variables you use in the INIT
+section with C<my>.  Note that INIT can be empty if you have no need of
+persistent variables.
+
+The following fairly simple example replaces all occurances of
+"example.com" with "example.org" in /etc/hosts:
+
+    filter /etc/hosts '' 's/example\.com/example\.org/'
+
+Here's a more complicated example that inserts the line "ssh\t\t22/tcp"
+after any line beginning with "ftp" and whitespace in /etc/services, if
+and only if the next line doesn't already begin with "ssh" and whitespace:
+
+    filter /etc/services 'my $saw'                    '\
+        if ($saw) {                                    \
+            $_ = "ssh\t\t22/tcp\n$_" unless /^ssh\s/;  \
+            $saw = 0;                                  \
+        } elsif (/^ftp\s/) {                           \
+            $saw = 1;                                  \
+        } else {                                       \
+            $saw = 0;                                  \
+        }                                              '
+
+Observe that a bundle command is still just a single line, so if it's
+continued on multiple lines each line except the last has to end in a
+backslash.  Also notice the quoting; because the code fragment is in
+single quotes, bundle doesn't try to do variable interpolation (which
+would be a mess) and backslashes inside single quotes are only special if
+followed by another backslash or by a single quote.  So strings like C<\n>
+can be used as is in Perl code inside single quotes.
+
+Another thing to notice about this example is that we go to some lengths
+to ensure that we don't make any changes unless necessary.  This lets us
+run a bundle file containing the above filter repeatedly without ill
+effect.
+
+The filtering is done in memory; this directive should not be used to
+modify large files.
+
+=item link VALUE TARGET
+
+A symbolic link named TARGET is created, with value VALUE.  If TARGET
+already exists, it's deleted as necessary.  Any directories that are part
+of the path TARGET which don't already exist are created in the process.
+Note that no effort is made to change the ownership or permissions on
+symbolic links; they get whatever defaults are assigned by the system.
+
+=item linkval SOURCE TARGET
+
+Copies the link SOURCE to TARGET.  In other words, a symbolic link is
+created named TARGET which contains as its value the same value that the
+link SOURCE has.  In general, this isn't as useful as the B<link> command
+(see below) where the value can be specified directly.  If TARGET already
+exists, it's deleted.  Any directories that are part of the path TARGET
+which don't already exist are created in the process.  Note that no effort
+is made to change the ownership or permissions on symbolic links; they get
+whatever defaults are assigned by the system.
+
+=item rename OLD NEW
+
+The file named OLD, if it exists, is renamed to NEW.  (This is done as a
+copy and unlink if OLD and NEW are on different file systems.)  If OLD does
+not exist and NEW does, B<bundle> assumes this command is up to date and
+takes no action; other cases (including the case where NEW already exists)
+are considered errors.
+
+=item rmdir DIRECTORY
+
+Removes DIRECTORY.  This only works if DIRECTORY is empty; there is no way
+in bundle to do the equivalent of C<rm -rf> without using B<system>.
+
+=item system COMMAND [ ARGUMENT ... ]
+
+Runs the command COMMAND, passing it the specified arguments.  Note that
+this doesn't have any dependencies and therefore B<bundle> has no way of
+knowing whether it has already been done and will run this command every
+time the bundle file is run.  If COMMAND contains shell metacharacters, it
+must be specified as one quoted string rather than as a command with
+arguments; if given as a command with arguments, the command will be run
+directly without going through the shell, so there is no need to protect
+shell metacharacters in the arguments.  (It's still necessary to protect
+bundle metacharacters, of course.)
+
+=back
+
+Note that for any bundle command that creates files, directories, or
+symbolic links, such as B<file>, B<dir>, B<link>, B<linkval>, and the
+like, if the directory in which the target file resides does not exist,
+bundle will create it.  Any needed directories above that directory are
+also created.  Ownership and permissions are inherited from the settings
+in force at the time of the command, and the execute bit on each created
+directory is set if the read bit on the file would be set.
+
+B<bundle> also supports variables.  A variable can be set with the syntax:
+
+    VARIABLE=VALUE
+
+on a line by itself, where VARIABLE consists of alphanumerics or
+underscores and VALUE is any value (it will need to be put in double
+quotes if it contains whitespace, and it follows the same quoting rules as
+commands).  Note that there cannot be any spaces before or after the equal
+sign.  After a variable has been set, it can be interpolated into any
+command.  For example:
+
+    SOURCE=/usr/pubsw/etc
+    DEST=/etc/leland
+    owner=root
+    file $SOURCE/krb.conf $DEST/krb.conf
+
+will copy /usr/pubsw/etc/krb.conf to /etc/leland/krb.conf.  Variables will
+be interpolated within double-quoted strings; a literal dollar sign can be
+written as C<\$> or protected with single quotes.  Both the C<$VARIABLE>
+and C<${VARIABLE}> syntaxes are supported.
+
+All variables consisting solely of all lowercase letters are special; most
+are reserved by bundle.  These variables cannot be interpolated into
+commands; instead, they affect the operation of bundle in other ways.
+Special variables (and only those) can be set at the end of a normal
+bundle command as well as by the syntax described above.  For example, the
+above could also be written as:
+
+    SOURCE=/usr/pubsw/etc
+    DEST=/etc/leland
+    file $SOURCE/krb.conf $DEST/krb.conf owner=root
+
+and would perform the same action.  Assignments on a line by themselves
+are permanent and will affect all bundle commands after them in the bundle
+file.  Assignments on the same line as a command, as in the previous
+example, are in effect B<only for that command>.
+
+To undefine a variable, just assign the empty string to it.  For example:
+
+    SOURCE=
+
+The following special variables can be set in bundle files:
+
+=over 4
+
+=item atime=TIME
+
+Sets the atime (access timestamp) of files or directories created with the
+B<file>, B<filexists>, or B<dir> commands to TIME (in the case of B<file>,
+overriding the timestamp of the source file).  TIME should be in Unix time
+format (seconds since epoch).
+
+=item force=1, force=0
+
+Turns B<--force> on (or off).  This overrides the command line flag and is
+mostly useful at the end of a specific bundle command which should always
+be performed regardless of whether the target appears to be up to date.
+
+=item group=GROUP
+
+Sets the group ownership of created files to GROUP.  By default, created
+files are owned by the same group as the source file.  GROUP may be either
+by GID or by name.  It's recommended that, for files that should be owned
+by group 0, the group be specified by number rather than by name since the
+name of that group differs across platforms.  GROUP may be set to -1 to
+indicate that no changes in group ownership should be made.
+
+=item mode=MODE
+
+Sets the permissions of created files to MODE (assumed to be in octal).
+By default, created files are given the same mode as the source file.
+
+=item mtime=TIME
+
+Sets the mtime (modification timestamp) of files or directories created
+with the B<file>, B<filexists>, or B<dir> commands to TIME (in the case of
+B<file>, overriding the timestamp of the source file).  TIME should be in
+Unix time format (seconds since epoch).  Note that if this variable is
+set, the target file of a B<file> command will be considered to be out of
+date and require an update if its mtime isn't equal to TIME (rather than
+comparing it to the timestamp on the source file).
+
+=item owner=OWNER
+
+Sets the owner of created files to OWNER.  By default, created files are
+owned by the same group as the source file.  OWNER may be either by UID or
+by name.  OWNER may be set to -1 to indicate that no change in ownership
+should be made.
+
+=item system=COMMAND
+
+Runs COMMAND for every successful bundle command.  (For obvious reasons,
+this is most useful at the end of a specific bundle command rather than as
+a standalone variable setting that would affect all subsequent commands,
+although the standalone setting is necessary to run a system command based
+on the results of an B<append> command.)  If COMMAND contains arguments,
+or otherwise contains whitespace, it will need to be in double quotes to
+prevent bundle from interpreting the whitespace as separators.  %S will be
+replaced with the source file %D with the target file of the associated
+command, if any.  The command specified in the B<system> variable is run
+only if the bundle command the variable is associated with was performed,
+so this is a way to get system commands with dependencies.
+
+=item younger=1, younger=0
+
+Turns B<--younger> on (or off).  This overrides the command line flag and
+is mostly useful at the end of a specific bundle command which should take
+effect only if the target is older than the source file.
+
+=back
+
+The B<echo> and B<system> commands don't allow any variable settings on
+the same line and ignore all variable settings (except for interpolation).
+The B<addline> and B<append> commands similarly don't allow variable
+settings on the same line but do honor the B<force> and B<system>
+variables.  In order to set one of those variables for just an B<addline>
+or B<append> command, it's necessary to use a sequence of lines like:
+
+    force=1
+    addline /path/to/file "First line" "Second line"
+    force=0
+
+to force the addline or append but not the other commands in the bundle
+file.
+
+=head1 EXAMPLES
+
+The following sample bundle file installs a full set of Kerberos
+executables and configuration files.  Notice that in no case is the
+ownership or mode of the original files trusted; instead, an explicit
+default ownership of root.0 is given and a default mode of 644 for
+configuration files and 755 for executable files is used.  Note also the
+rule for installing ksu overrides the default mode for just that one
+bundle command.
+
+  owner=root
+  group=0
+
+  mode=644
+
+  file /usr/pubsw/etc/krb.conf      /etc/leland/krb.conf
+  link leland/krb.conf              /etc/krb.conf
+
+  file /usr/pubsw/etc/krb5.conf     /etc/leland/krb5.conf
+  link leland/krb5.conf             /etc/krb5.conf
+
+  file /usr/pubsw/etc/krb.realms    /etc/leland/krb.realms
+  link leland/krb.realms            /etc/krb.realms
+
+  file /usr/pubsw/etc/hesiod.conf   /etc/leland/hesiod.conf
+  link leland/hesiod.conf           /etc/hesiod.conf
+
+  file /usr/pubsw/lib/zephyr/zephyr.vars /etc/leland/zephyr.vars
+
+  mode=755
+
+  file /usr/pubsw/sbin/login.krb    /etc/leland/login.krb
+  file /usr/pubsw/sbin/klogind      /etc/leland/klogind
+  file /usr/pubsw/sbin/kshd         /etc/leland/kshd
+  file /usr/pubsw/sbin/kftgtd       /etc/leland/kftgtd
+
+  file /usr/pubsw/bin/aklog         /etc/leland/aklog
+
+  # comment this out if you don't want ksu installed locally
+  file /usr/pubsw/sbin/ksu.nosetuid /usr/bin/ksu mode=4111
+
+  file /usr/pubsw/sbin/telnetd      /etc/leland/telnetd
+  file /usr/pubsw/sbin/zhm          /etc/leland/zhm
+  file /usr/pubsw/sbin/sidentd      /etc/leland/sidentd
+  file /usr/pubsw/sbin/tcpd         /etc/leland/tcpd
+
+=head1 ENVIRONMENT
+
+=over 4
+
+=item BUNDLE_LIB
+
+A colon-separated list of directories to search through for bundle files.
+Note that . (the current directory) is B<not> searched by default unless
+it is included in the search path.  The default search path is set at the
+top of the bundle script.
+
+=back
+
+=head1 NOTES
+
+While B<bundle> is very free-form about the syntax allowed in its files,
+in practice there are a few style guidelines that I've found useful for
+keeping the files clear, readable, and maintainable.  Here's a short list.
+
+If you're using B<bundle> to install a set of related files, consider
+writing your bundle file to use relative paths for the source location of
+those files.  That way, you can take your bundle file and all of its
+associated files and move them around or distribute them as a package and
+no changes to the bundle file are needed; anyone running it simply has to
+change to that directory before doing so.  If this doesn't fit your
+application, at least put the common source directory as a variable set at
+the top of the bundle file and have all of the commands in the file use
+that variable so that you only have to change one line.
+
+It's worth going to some effort to prevent things from going over 80
+columns to keep them more readable.  Remember that bundle allows
+continuation lines just by ending a line with a backslash, and remember
+that you can define variables and thereby abbreviate long paths.
+
+There are a lot of bundle commands, particularly the frequently used
+B<file> command, that take two arguments.  I generally line up the second
+arguments at column 34 (provided the first argument isn't too long); the
+whitespace makes things look more readable to me.
+
+Putting one-line B<system> variable settings on the next line from the
+command, indented four spaces (and with a backslash on the previous line, of
+course), seems to make them stand out better.  For example:
+
+    file $FILES/aliases               /etc/mail/aliases \
+        system="/usr/lib/sendmail -bi"
+
+Remember that bundle files allow blank lines and comments.  Comments are
+good.
+
+=head1 BUGS
+
+The bundle generated by the B<--backup> flag in the case of a B<file>
+directive that replaces an existing file is not idempotent, and in fact
+running the backout bundle twice will cause the file to be deleted
+completely.  This is obviously bad and should be fixed; the only clear way
+of fixing it would appear to be to add a new directive like B<rename> that
+is willing to overwrite a destination file.
+
+The B<dir> directive honors mode verbatim for the last directory created,
+but any directories higher on the chain use the magic mode formed by
+ensuring that there is execute permission for every user who has read
+permission.  This is arguably a bug.
+
+There is no way to set a variable to the empty string.
+
+=head1 WARNINGS
+
+The behavior of chown on symlinks is undefined; this is not the fault of
+B<bundle> or Perl but the fault of the underlying system call.  On some
+systems, chown will follow the link and change the ownership of the file
+it points to; on other systems, chown will change the ownership of the
+link.  Having a symbolic link be the target of a chown command is
+therefore not recommended.  B<bundle> does not implement lchown.
+
+Those sensitive about security should note that while some effort has been
+taken to avoid possible security problems, there are a number of race
+conditions involving file creation and overwriting still remaining,
+particularly with the B<filter> and B<file> commands.  Running those
+commands with target files in world-writeable directories while B<bundle>
+is running as root is not recommended.
+
+There is a possibility (roughly one in a thousand) that, when running
+B<bundle> with the B<--backup> flag and making multiple changes to the
+same file in the course of a single bundle file, that B<bundle> will fail
+to make a backup of intermediate versions of the file.  B<--just-print>
+may also return errors or incorrect information for a bundle file that
+makes multiple changes to the same file.
+
+Setting B<owner> or B<group> to -1 indicates that no changes should be
+made to the file ownership or group ownership, not to chown the file to
+the UID or GID one less than the maximum value (often C<nobody> or
+C<nogroup>).  To specify that UID or GID, use its name or its positive UID
+value.
+
+=head1 AUTHORS
+
+The original bundle program (based on synctree from the University of
+Michigan) was written by Roland Schemers <schemers@stanford.edu>.  It has
+since been rewritten by Russ Allbery <rra@stanford.edu> who currently
+maintains it.
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004, 2006,
+2008 Board of Trustees, Leland Stanford Jr. University
+
+This program is free software; you may redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
