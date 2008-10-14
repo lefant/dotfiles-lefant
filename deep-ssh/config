@@ -15,5 +15,11 @@ host hip* hop* hep* al* wave*
 host rd01* srv2*
      port 55022
 
+host keisanki.net
+     port 22007
+
+host heraklit*
+     port 22222
+
 host vpn-* bar-*
      user root
