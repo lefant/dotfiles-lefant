@@ -1,0 +1,7 @@
+repobase = /home/lefant/darcs
+upstreamrepo = %(repobase)s/%(package)s
+debianrepo = %(repobase)s/%(package)s.debian
+
+debianmirrors = http://lefant.net/darcs/%(package)s.debian
+upstreammirrors = http://lefant.net/darcs/%(package)s
+                  http://blitiri.com.ar/p/darcsweb/repos/%(package)s
