@@ -27,6 +27,7 @@ file $SOURCE/dot-screenrc.meta $HOME/.screenrc.meta
 file $SOURCE/dot-debs $HOME/.debs
 file $SOURCE/dot-debs-x $HOME/.debs-x
 file $SOURCE/dot-xsession $HOME/.xsession
+file $SOURCE/dot-darcs-buildpackage $HOME/.darcs-buildpackage
 
 #echo link $SOURCE $HOME
 
