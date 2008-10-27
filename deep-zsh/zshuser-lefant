@@ -22,12 +22,7 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            maybe_run_keychain
-            maybe_make_krb5ccnamesh
-            maybe_source_keychain
-            maybe_source_krb5ccnamesh
-
-            find_best_editor
+            fix_env
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
@@ -40,18 +35,14 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            maybe_run_keychain
-            maybe_make_krb5ccnamesh
-            maybe_source_keychain
-            maybe_source_krb5ccnamesh
-
-            find_best_editor
+            fix_env
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
         }
         ;;
     *)
+        maybe_run_keychain
         maybe_make_krb5ccnamesh
 
         if [ -z $SSH_TTY ]; then
@@ -87,6 +78,16 @@ case $STY in
 esac
 
 #helper functions
+
+fix_env () {
+    maybe_source_keychain
+    maybe_run_keychain
+
+    maybe_source_krb5ccnamesh
+    maybe_make_krb5ccnamesh
+
+    find_best_editor
+}
 
 maybe_make_krb5ccnamesh () {
     if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]
