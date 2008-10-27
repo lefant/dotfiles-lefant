@@ -119,7 +119,7 @@ maybe_source_keychain () {
     if [ `ssh-add -l &>/dev/null ; echo $?` = 2 ]
     then
         source $HOME/.keychain/$HOST-sh
-        if [ ! `ssh-add -l &>/dev/null ; echo $` = 0 ]
+        if [ ! `ssh-add -l &>/dev/null ; echo $?` = 0 ]
         then
             rm -r $HOME/.keychain
             killall ssh-agent
