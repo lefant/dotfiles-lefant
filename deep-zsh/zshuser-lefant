@@ -14,67 +14,6 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
 
-# case dispatch on running local screen, meta screen or no screen at all (yet)
-case $STY in
-    *.local)
-        preexec () {
-            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
-            echo -ne "\ek$CMD\e\\"
-            SCREENTITLE=$'%{\ekzsh\e\\%}'
-
-            fix_env
-        }
-        precmd () {
-            RPROMPT="%(?..:()% ${SCREENTITLE}"
-        }
-        ;;
-    *.meta)
-        preexec () {
-            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
-            CMD=`echo $CMD|cut -f 1 -d "."`
-            echo -ne "\ek$CMD\e\\"
-            SCREENTITLE=$'%{\ekzsh\e\\%}'
-
-            fix_env
-        }
-        precmd () {
-            RPROMPT="%(?..:()% ${SCREENTITLE}"
-        }
-        ;;
-    *)
-        fix_env
-
-        if [ -z $SSH_TTY ]; then
-            case `hostname` in
-                nix)
-                    sudo invoke-rc.d openvpn start validad
-                    ;;
-                *)
-                    ;;
-            esac
-            [[ -e /usr/bin/afuse ]] && touch /dev/fuse &>/dev/null && \
-                afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
-
-            # run zeiterfassung start
-	    cd ~/shared/arbeitszeit/`hostname`
-	    echo "arrived **" |~/shared/code/python/timelog/timelog.py
-	    cd ~
-	    unison -silent &
-
-            screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
-
-            # run zeiterfassung end
-	    cd ~/shared/arbeitszeit/`hostname`
-	    echo "work" |~/shared/code/python/timelog/timelog.py
-	    unison -silent &
-	    killall afuse
-            kdestroy
-            rm /tmp/krb5cc_*
-        else
-            screen -a -A -d -RR -S local
-        fi
-        ;;
-esac
 
 #helper functions
 
@@ -148,3 +87,67 @@ find_best_editor () {
     export VISUAL=$EDITOR
     alias e="$EDITOR"
 }
+
+
+# case dispatch on running local screen, meta screen or no screen at all (yet)
+case $STY in
+    *.local)
+        preexec () {
+            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
+            echo -ne "\ek$CMD\e\\"
+            SCREENTITLE=$'%{\ekzsh\e\\%}'
+
+            fix_env
+        }
+        precmd () {
+            RPROMPT="%(?..:()% ${SCREENTITLE}"
+        }
+        ;;
+    *.meta)
+        preexec () {
+            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
+            CMD=`echo $CMD|cut -f 1 -d "."`
+            echo -ne "\ek$CMD\e\\"
+            SCREENTITLE=$'%{\ekzsh\e\\%}'
+
+            fix_env
+        }
+        precmd () {
+            RPROMPT="%(?..:()% ${SCREENTITLE}"
+        }
+        ;;
+    *)
+        fix_env
+
+        if [ -z $SSH_TTY ]; then
+            case `hostname` in
+                nix)
+                    sudo invoke-rc.d openvpn start validad
+                    ;;
+                *)
+                    ;;
+            esac
+            [[ -e /usr/bin/afuse ]] && touch /dev/fuse &>/dev/null && \
+                afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
+
+            # run zeiterfassung start
+	    cd ~/shared/arbeitszeit/`hostname`
+	    echo "arrived **" |~/shared/code/python/timelog/timelog.py
+	    cd ~
+	    unison -silent &
+
+            screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
+
+            # run zeiterfassung end
+	    cd ~/shared/arbeitszeit/`hostname`
+	    echo "work" |~/shared/code/python/timelog/timelog.py
+	    unison -silent &
+	    killall afuse
+            kdestroy
+            rm /tmp/krb5cc_*
+        else
+            screen -a -A -d -RR -S local
+        fi
+        ;;
+esac
+
