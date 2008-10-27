@@ -22,25 +22,12 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            conditional_kinit_and_keychain
+            maybe_run_keychain
+            maybe_make_krb5ccnamesh
+            maybe_source_keychain
+            maybe_source_krb5ccnamesh
 
-            if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]; then
-                if [ -f /usr/bin/emacsclient.emacs-snapshot ]; then
-                    export EDITOR="emacsclient -c"
-                else
-                    export EDITOR="emacsclient"
-                fi
-            elif [ -f /usr/bin/mg ]; then
-                export EDITOR="mg"
-            elif [ -f /usr/bin/zile ]; then
-                export EDITOR="zile"
-            elif [ -f /usr/bin/nano ]; then
-                export EDITOR="nano"
-            elif [ -f /usr/bin/vim ]; then
-                export EDITOR="vim"
-            fi
-            export VISUAL=$EDITOR
-            alias e="$EDITOR"
+            find_best_editor
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
@@ -53,17 +40,24 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            conditional_kinit_and_keychain
+            maybe_run_keychain
+            maybe_make_krb5ccnamesh
+            maybe_source_keychain
+            maybe_source_krb5ccnamesh
+
+            find_best_editor
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
         }
         ;;
     *)
+        maybe_make_krb5ccnamesh
+
         if [ -z $SSH_TTY ]; then
             case `hostname` in
-                lnx-vie-003)
-                    sudo invoke-rc.d openvpn start lefant
+                nix)
+                    sudo invoke-rc.d openvpn start validad
                     ;;
                 *)
                     ;;
@@ -92,12 +86,17 @@ case $STY in
         ;;
 esac
 
-#helper function
-conditional_kinit_and_keychain () {
+#helper functions
+
+maybe_make_krb5ccnamesh () {
     if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]
     then
         echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
-    elif [ -f $HOME/.krb5ccname.sh ]
+    fi
+}
+
+maybe_source_krb5ccnamesh () {
+    if [ `klist --test &>/dev/null ; echo $?` = 1 -a -f $HOME/.krb5ccname.sh ]
     then
         source $HOME/.krb5ccname.sh
         if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]
@@ -106,12 +105,45 @@ conditional_kinit_and_keychain () {
             unset KRB5CCNAME
         fi
     fi
+}
 
+
+maybe_run_keychain () {
     if [ -e /usr/bin/keychain ]
     then
-        if [ `ssh-add -l &>/dev/null ; echo $?` = 2 ]
+        keychain -q --inherit any
+    fi
+}
+
+maybe_source_keychain () {
+    if [ `ssh-add -l &>/dev/null ; echo $?` = 2 ]
+    then
+        source $HOME/.keychain/$HOST-sh
+        if [ ! `ssh-add -l &>/dev/null ; echo $` = 0 ]
         then
-            keychain --inherit any -q && source $HOME/.keychain/$HOST-sh
+            rm -r $HOME/.keychain
+            killall ssh-agent
+            unset SSH_AUTH_SOCK
         fi
     fi
+}
+
+find_best_editor () {
+    if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]; then
+        if [ -f /usr/bin/emacsclient.emacs-snapshot ]; then
+            export EDITOR="emacsclient -c"
+        else
+            export EDITOR="emacsclient"
+        fi
+    elif [ -f /usr/bin/mg ]; then
+        export EDITOR="mg"
+    elif [ -f /usr/bin/zile ]; then
+        export EDITOR="zile"
+    elif [ -f /usr/bin/nano ]; then
+        export EDITOR="nano"
+    elif [ -f /usr/bin/vim ]; then
+        export EDITOR="vim"
+    fi
+    export VISUAL=$EDITOR
+    alias e="$EDITOR"
 }
