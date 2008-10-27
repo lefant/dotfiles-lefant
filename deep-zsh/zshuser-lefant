@@ -22,15 +22,7 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]; then
-                echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
-            elif [ -f $HOME/.krb5ccname.sh ]; then
-                source $HOME/.krb5ccname.sh
-                if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]; then
-                    rm $HOME/.krb5ccname.sh
-                    unset KRB5CCNAME
-                fi
-            fi
+            conditional_kinit_and_keychain
 
             if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]; then
                 if [ -f /usr/bin/emacsclient.emacs-snapshot ]; then
@@ -38,6 +30,8 @@ case $STY in
                 else
                     export EDITOR="emacsclient"
                 fi
+            elif [ -f /usr/bin/mg ]; then
+                export EDITOR="mg"
             elif [ -f /usr/bin/zile ]; then
                 export EDITOR="zile"
             elif [ -f /usr/bin/nano ]; then
@@ -59,17 +53,7 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]; then
-                echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
-            elif [ -f $HOME/.krb5ccname.sh ]; then
-                source $HOME/.krb5ccname.sh
-                if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]; then
-                    rm $HOME/.krb5ccname.sh
-                    unset KRB5CCNAME
-                fi
-            fi
-
-            [[ -e /usr/bin/keychain ]] && [[ `ssh-add -l &>/dev/null ; echo $?` = 2 ]] && keychain -q && source $HOME/.keychain/$HOST-sh
+            conditional_kinit_and_keychain
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
@@ -107,3 +91,27 @@ case $STY in
         fi
         ;;
 esac
+
+#helper function
+conditional_kinit_and_keychain () {
+    if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]
+    then
+        echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
+    elif [ -f $HOME/.krb5ccname.sh ]
+    then
+        source $HOME/.krb5ccname.sh
+        if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]
+        then
+            rm $HOME/.krb5ccname.sh
+            unset KRB5CCNAME
+        fi
+    fi
+
+    if [ -e /usr/bin/keychain ]
+    then
+        if [ `ssh-add -l &>/dev/null ; echo $?` = 2 ]
+        then
+            keychain --inherit any -q && source $HOME/.keychain/$HOST-sh
+        fi
+    fi
+}
