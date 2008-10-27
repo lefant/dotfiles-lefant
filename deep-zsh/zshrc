@@ -55,6 +55,8 @@ eval $(dircolors)
 export LESSCHARSET=UTF-8
 export LESS='-iFRSX'
 
+export GREP_OPTIONS="--color=auto --ignore-case"
+
 alias ls='ls --color=auto --classify'
 
 
