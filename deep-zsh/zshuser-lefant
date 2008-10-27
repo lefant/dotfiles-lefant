@@ -117,15 +117,14 @@ maybe_make_keychain () {
     fi
 }
 maybe_source_keychain () {
-        if [ `ssh-add -l &>/dev/null ; echo $?` = 2 -a -f $HOME/.keychain/$HOST-sh ]
+    if [ `ssh-add -l &>/dev/null ; echo $?` = 2 -a -f $HOME/.keychain/$HOST-sh ]
+    then
+        source $HOME/.keychain/$HOST-sh
+        if [ ! `ssh-add -l &>/dev/null ; echo $?` = 0 ]
         then
-            source $HOME/.keychain/$HOST-sh
-            if [ ! `ssh-add -l &>/dev/null ; echo $?` = 0 ]
-            then
-                rm -r $HOME/.keychain
-                killall ssh-agent
-                unset SSH_AUTH_SOCK
-            fi
+            rm -r $HOME/.keychain
+            killall ssh-agent
+            unset SSH_AUTH_SOCK
         fi
     fi
 }
