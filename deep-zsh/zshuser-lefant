@@ -42,8 +42,7 @@ case $STY in
         }
         ;;
     *)
-        maybe_run_keychain
-        maybe_make_krb5ccnamesh
+        fix_env
 
         if [ -z $SSH_TTY ]; then
             case `hostname` in
