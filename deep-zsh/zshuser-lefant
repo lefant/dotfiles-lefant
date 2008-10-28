@@ -24,7 +24,7 @@ find_best_editor () {
             export EDITOR="emacsclient"
         fi
     elif [ -f /usr/bin/mg ]; then
-        export EDITOR="mg"
+        export EDITOR="mg -n"
     elif [ -f /usr/bin/zile ]; then
         export EDITOR="zile"
     elif [ -f /usr/bin/nano ]; then
