@@ -32,11 +32,6 @@ fi
 
 # host dependent wm/session and startup things
 case `hostname` in
-    lnx-vie-003)
-        STD_APPS="${STD_APPS} pidgin"
-        sh -c "sleep 0.1 && urxvt -e su - lefant" &
-        fusesmb ~/net &
-        ;;
     nix)
         ;;
     end)
@@ -49,8 +44,7 @@ case `hostname` in
         ;;
     delefant)
         sudo invoke-rc.d openvpn start lefant &
-        sudo invoke-rc.d openvpn start mmnet &
-        STD_APPS="${STD_APPS} pidgin"
+        STD_APPS="${STD_APPS} xfce4-panel"
         ;;
     *)
         echo "new host here"
