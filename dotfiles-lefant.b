@@ -29,6 +29,8 @@ file $SOURCE/dot-debs-x $HOME/.debs-x
 file $SOURCE/dot-xsession $HOME/.xsession
 file $SOURCE/dot-darcs-buildpackage $HOME/.darcs-buildpackage
 file $SOURCE/dot-dput.cf $HOME/.dput.cf
+file $SOURCE/dot-offlineimaprc $HOME/.offlineimaprc
+file $SOURCE/dot-muttrc $HOME/.muttrc
 
 #echo link $SOURCE $HOME
 

@@ -48,3 +48,5 @@ remotehost = mail.gandi.net
 # remoteport = 993
 remoteuser = lefant@lefant.net
 remotepassfile = ~/.secret/lefant@lefant.net_mail.gandi.net
+
+folderfilter = lambda foldername: foldername not in ['INBOX']
