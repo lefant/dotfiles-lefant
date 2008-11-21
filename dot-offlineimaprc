@@ -1,0 +1,50 @@
+[general]
+metadata = ~/.offlineimap
+accounts = GandiLefant
+maxsyncaccounts = 5
+ignore-readonly = no
+
+ui = Curses.Blinkenlights, TTY.TTYUI,
+     Noninteractive.Basic, Noninteractive.Quiet
+
+
+
+[mbnames]
+enabled = yes
+filename = ~/.muttrc.mailboxes
+header = "mailboxes "
+#peritem = "+Maildir%(accountname)s/%(foldername)s"
+peritem = =%(foldername)s
+sep = ' '
+footer = "\n"
+
+[ui.Curses.Blinkenlights]
+statuschar = .
+
+
+[Account GandiLefant]
+localrepository = LocalLefant
+remoterepository = GandiLefant
+
+
+########## Advanced settings
+
+autorefresh = 5
+# quick = 10
+
+[Repository LocalLefant]
+type = Maildir
+localfolders = ~/MaildirGandiLefant
+sep = .
+restoreatime = no
+
+
+[Repository GandiLefant]
+maxconnections = 3
+
+type = IMAP
+ssl = yes
+remotehost = mail.gandi.net
+# remoteport = 993
+remoteuser = lefant@lefant.net
+remotepassfile = ~/.secret/lefant@lefant.net_mail.gandi.net
