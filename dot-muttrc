@@ -1,5 +1,5 @@
 set mbox_type=Maildir
-set folder=$HOME/MaildirGandiLefant/
+set folder=$HOME/MaildirGandiLefant
 source $HOME/.muttrc.mailboxes
 
 
@@ -8,10 +8,91 @@ set reverse_name
 
 
 # what exactly do those mean?
-set folder_format="%2C %t %N %F %2l %-8.8u %-8.8g %8s %d %f"
-set index_format="%4C %-11.11D %S %-21.21n (%3l) %s"
+#set folder_format="%2C %t %N %F %2l %-8.8u %-8.8g %8s %d %f"
+#set index_format="%4C %-11.11D %S %-21.21n (%3l) %s"
+set status_format=" %r %b %f %n      Del %d      Msgs %m %l %> (%P)"
+set pager_format="%-10.10i %[!%a %b %d %R]"
+set date_format="!%H:%M %a %d %b     "
+set index_format="%4C %Z %[%b%d] %-15.15F %s"
+set folder_format="%2C %t %8s %d %N %f"
 
 
 #set timeout=10
 #set mail_check=5
+
+
+set copy                                  # Keep copies of outgoing mail...
+set record=+Sent
+set noconfirmappend
 set delete=yes
+set edit_headers
+
+
+
+
+set mbox=+e
+set copy                                  # Keep copies of outgoing mail...
+set record=+Sent
+set postponed=+Drafts                     # Where postponed messages live.
+
+set postpone=ask-no                       # Ask about postponing.
+set delete=yes
+set print=ask-yes                         # Ask before printing.
+
+set hidden_host                           # Hide host details.
+set nomove                                # Hold messages in $MAIL.
+set include                               # Include the message in replies.
+set sort_aux=date-received                # Sort threads by date received.
+set charset=utf8
+set noallow_8bit                          # 8bit isn't safe via Demon.
+                                          # Attribution line.
+#set attribution="* %n <%a> [%{%Y-%m-%d %H:%M:%S %Z}]:\n"
+set edit_headers                          # I want to edit the message headers.
+                                          # Use emacs.
+#set editor="emacs -geometry 90x73+298+0 --load post-mode"
+#set query_command="lbdbq '%s'"            # Use the little brother database for doing queries.
+#set nomark_old                            # Don't mark unread new msgs as old.
+set nobeep                                # We don't need no beeping software.
+set nosmart_wrap                          # Don't want smart wrapping.
+set mime_forward                          # Forward message as MIME attachments.
+set pager_context=3                       # Display 3 lines of context in pager.
+set nostrict_threads                      # Lets have some fuzzy threading.
+set sendmail_wait=-1                      # Don't wait around for sendmail.
+set fcc_clear                             # Keep fcc's clear of signatues and encryption.
+set nopipe_decode                         # Don't decode messages when piping.
+					  # Print via a2ps
+set tilde                                 # Fill out messages with '~'.
+set read_inc=100                          # Read counter ticks every 100 msgs.
+set write_inc=100                         # Write counter ticks every 100 msgs.
+set noconfirmappend                       # Just append, don't hassle me.
+set pager_stop                            # Don't skip msgs on next page.
+                                          # Where to find the mailcap.
+#set mailcap_path=~/.mutt/mailcap:/usr/local/etc/mailcap:/etc/mailcap
+                                          # What we consider to be a quote.
+#set quote_regexp="^( {0,4}[>|:#%]| {0,4}[a-z0-9]+[>|]+)+"
+#set to_chars=" +TCF "                     # Drop the "L".
+
+#source /usr/local/doc/mutt/samples/gpg.rc # Use GPG
+#source ~/.mutt/auto_views                 # Define auto_views.
+#source ~/.mutt/aliases                    # Load in my aliases.
+#source ~/.mutt/subscriptions              # Define the list of subscribed mailing lists.
+#source ~/.mutt/mailboxes                  # Define the list of folders that receive mail.
+#source ~/.mutt/headers                    # Configure header display.
+#source ~/.mutt/folder-hooks               # Define folder-hooks.
+#source ~/.mutt/save-hooks                 # Define save-hooks.
+#source ~/.mutt/fcc-hooks                  # Define fcc-hooks.
+#source ~/.mutt/message-hooks              # Define message hooks.
+#source ~/.mutt/bindings                   # Define key bindings.
+#source ~/.mutt/macros                     # Define macros.
+#source ~/.mutt/colours                    # Define colours.
+#source ~/.mutt/non-standard               # Support for mutt patches.
+
+# HTML is the last option.
+alternative_order text/enriched text/plain text/html 
+
+# Last, but not least, get mutt to display its version on startup.
+push <show-version>
+
+
+macro index \eM "<shell-escape>mairix " "Run a Mairix search"
+macro index \eF "<change-folder-readonly>$HOME/.mairix-results/\n" "Switch to Mairix virtual folder"
