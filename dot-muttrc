@@ -7,6 +7,9 @@ set from="Fabian Linzberger <e@lefant.net>"
 set reverse_name
 
 
+ignore *
+unignore From: To: Cc: Bcc: Subject: Date:
+
 # what exactly do those mean?
 #set folder_format="%2C %t %N %F %2l %-8.8u %-8.8g %8s %d %f"
 #set index_format="%4C %-11.11D %S %-21.21n (%3l) %s"
