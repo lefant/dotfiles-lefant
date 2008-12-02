@@ -33,6 +33,7 @@ fi
 # host dependent wm/session and startup things
 case `hostname` in
     nix)
+        STD_APPS="${STD_APPS} skype"
         ;;
     end)
         sh -c "sleep 5 && sudo nm-applet" &
