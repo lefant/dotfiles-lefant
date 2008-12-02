@@ -1,4 +1,4 @@
-root = ssh://e@lefant.net//home/e
+root = ssh://e@muybridge.lefant.net//home/e
 root = /home/lefant
 
 logfile = /home/lefant/.unison/unison.log
