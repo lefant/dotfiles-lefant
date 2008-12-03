@@ -24,9 +24,9 @@ STD_APPS="xfce4-panel urxvt emacs"
 grep -q ubuntu /etc/apt/sources.list
 if [ $? -eq 0 ]
 then
-    STD_APPS="${STD_APPS} gnome-screensaver thunderbird firefox"
+    STD_APPS="${STD_APPS} gnome-screensaver firefox"
 else
-    STD_APPS="${STD_APPS} xscreensaver icedove iceweasel"
+    STD_APPS="${STD_APPS} xscreensaver iceweasel"
 fi
 
 
