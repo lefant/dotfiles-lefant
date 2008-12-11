@@ -1,0 +1,548 @@
+## vim:ft=zsh:foldmethod=marker
+##
+## vcs_info - provide version control information
+##
+## Written by Frank Terbeck <ft@xxxxxxxxxxxxxxxxxxx>
+## Distributed under the same BSD-ish license as zsh itself.
+##
+
+# utilities
+VCS_INFO_adjust () { #{{{
+    [[ -n ${vcs_comm[overwrite_name]} ]] && vcs=${vcs_comm[overwrite_name]}
+    return 0
+}
+# }}}
+VCS_INFO_check_com () { #{{{
+    (( ${+commands[$1]} )) && [[ -x ${commands[$1]} ]] && return 0
+    return 1
+}
+# }}}
+VCS_INFO_formats () { # {{{
+    setopt localoptions noksharrays
+    local action=$1 branch=$2 base=$3
+    local msg
+    local -i i j
+
+    if [[ -n ${action} ]] ; then
+        zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" actionformats msgs
+        (( ${#msgs} < 1 )) && msgs[1]=' (%s)-[%b|%a]-'
+    else
+        zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" formats msgs
+        (( ${#msgs} < 1 )) && msgs[1]=' (%s)-[%b]-'
+    fi
+
+    (( ${#msgs} > maxexports )) && msgs[$(( maxexports + 1 )),-1]=()
+    for i in {1..${#msgs}} ; do
+        zformat -f msg ${msgs[$i]} a:${action} b:${branch} s:${vcs} r:${base:t} R:${base} S:"$(VCS_INFO_reposub ${base})"
+        msgs[$i]=${msg}
+    done
+    return 0
+}
+# }}}
+VCS_INFO_maxexports () { #{{{
+    zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" "max-exports" maxexports || maxexports=2
+    if [[ ${maxexports} != <-> ]] || (( maxexports < 1 )); then
+        printf 'vcs_info(): expecting numeric arg >= 1 for max-exports (got %s).\n' ${maxexports}
+        printf 'Defaulting to 2.\n'
+        maxexports=2
+    fi
+}
+# }}}
+VCS_INFO_nvcsformats () { #{{{
+    setopt localoptions noksharrays
+    local c v rr
+
+    if [[ $1 == '-preinit-' ]] ; then
+        c='default'
+        v='-preinit-'
+        rr='-all-'
+    fi
+    zstyle -a ":vcs_info:${v:-$vcs}:${c:-$usercontext}:${rrn:-$rr}" nvcsformats msgs
+    (( ${#msgs} > maxexports )) && msgs[${maxexports},-1]=()
+}
+# }}}
+VCS_INFO_realpath () { #{{{
+    # a portable 'readlink -f'
+    # forcing a subshell, to ensure chpwd() is not removed
+    # from the calling shell (if VCS_INFO_realpath() is called
+    # manually).
+    (
+        (( ${+functions[chpwd]} )) && unfunction chpwd
+        setopt chaselinks
+        cd $1 2>/dev/null && pwd
+    )
+}
+# }}}
+VCS_INFO_reposub () { #{{{
+    setopt localoptions extendedglob
+    local base=${1%%/##}
+
+    [[ ${PWD} == ${base}/* ]] || {
+        printf '.'
+        return 1
+    }
+    printf '%s' ${PWD#$base/}
+    return 0
+}
+# }}}
+VCS_INFO_set () { #{{{
+    setopt localoptions noksharrays
+    local -i i j
+
+    if [[ $1 == '--clear' ]] ; then
+        for i in {0..9} ; do
+            unset VCS_INFO_message_${i}_
+        done
+    fi
+    if [[ $1 == '--nvcs' ]] ; then
+        [[ $2 == '-preinit-' ]] && (( maxexports == 0 )) && (( maxexports = 1 ))
+        for i in {0..$((maxexports - 1))} ; do
+            typeset -gx VCS_INFO_message_${i}_=
+        done
+        VCS_INFO_nvcsformats $2
+    fi
+
+    (( ${#msgs} - 1 < 0 )) && return 0
+    for i in {0..$(( ${#msgs} - 1 ))} ; do
+        (( j = i + 1 ))
+        typeset -gx VCS_INFO_message_${i}_=${msgs[$j]}
+    done
+
+    if (( i < maxexports )) ; then
+        for j in {$(( i + 1 ))..${maxexports}} ; do
+            [[ -n ${(P)${:-VCS_INFO_message_${j}_}} ]] && typeset -gx VCS_INFO_message_${j}_=
+        done
+    fi
+    return 0
+}
+# }}}
+# information gathering
+VCS_INFO_bzr_get_data () { # {{{
+    setopt localoptions noksharrays extendedglob
+    local bzrbase bzrbr
+    local -a bzrinfo
+
+    if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" "use-simple" ; then
+        bzrbase=${vcs_comm[basedir]}
+        bzrinfo[2]=${bzrbase:t}
+        if [[ -f ${bzrbase}/.bzr/branch/last-revision ]] ; then
+            bzrinfo[1]=$(< ${bzrbase}/.bzr/branch/last-revision)
+            bzrinfo[1]=${${bzrinfo[1]}%% *}
+        fi
+    else
+        bzrbase=${${(M)${(f)"$( bzr info )"}:# ##branch\ root:*}/*: ##/}
+        bzrinfo=( ${${${(M)${(f)"$( bzr version-info )"}:#(#s)(revno|branch-nick)*}/*: /}/*\//} )
+        bzrbase="$(VCS_INFO_realpath ${bzrbase})"
+    fi
+
+    rrn=${bzrbase:t}
+    zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" branchformat bzrbr || bzrbr="%b:%r"
+    zformat -f bzrbr "${bzrbr}" "b:${bzrinfo[2]}" "r:${bzrinfo[1]}"
+    VCS_INFO_formats '' "${bzrbr}" "${bzrbase}"
+    return 0
+}
+# }}}
+VCS_INFO_cdv_get_data () { # {{{
+    local cdvbase
+
+    cdvbase=${vcs_comm[basedir]}
+    rrn=${cdvbase:t}
+    VCS_INFO_formats '' "${cdvbase:t}" "${cdvbase}"
+    return 0
+}
+# }}}
+VCS_INFO_cvs_get_data () { # {{{
+    local cvsbranch cvsbase
+
+    cvsbase="."
+    while [[ -d "${cvsbase}/../CVS" ]]; do
+        cvsbase="${cvsbase}/.."
+    done
+    cvsbase="$(VCS_INFO_realpath ${cvsbase})"
+    cvsbranch=$(< ./CVS/Repository)
+    rrn=${cvsbase:t}
+    cvsbranch=${cvsbranch##${rrn}/}
+    [[ -z ${cvsbranch} ]] && cvsbranch=${rrn}
+    VCS_INFO_formats '' "${cvsbranch}" "${cvsbase}"
+    return 0
+}
+# }}}
+VCS_INFO_darcs_get_data () { # {{{
+    local darcsbase
+
+    darcsbase=${vcs_comm[basedir]}
+    rrn=${darcsbase:t}
+    VCS_INFO_formats '' "${darcsbase:t}" "${darcsbase}"
+    return 0
+}
+# }}}
+VCS_INFO_git_get_data () { # {{{
+    setopt localoptions extendedglob
+    local gitdir gitbase gitbranch gitaction
+
+    gitdir=${vcs_comm[gitdir]}
+    gitbranch="$(VCS_INFO_git_getbranch ${gitdir})"
+
+    if [[ -z ${gitdir} ]] || [[ -z ${gitbranch} ]] ; then
+        return 1
+    fi
+
+    VCS_INFO_adjust
+    gitaction="$(VCS_INFO_git_getaction ${gitdir})"
+    gitbase=${PWD%/${$( git rev-parse --show-prefix )%/##}}
+    rrn=${gitbase:t}
+    VCS_INFO_formats "${gitaction}" "${gitbranch}" "${gitbase}"
+    return 0
+}
+# }}}
+VCS_INFO_git_getaction () { #{{{
+    local gitaction='' gitdir=$1
+    local tmp
+
+    for tmp in "${gitdir}/rebase-apply" \
+               "${gitdir}/rebase"       \
+               "${gitdir}/../.dotest" ; do
+        if [[ -d ${tmp} ]] ; then
+            if   [[ -f "${tmp}/rebasing" ]] ; then
+                gitaction="rebase"
+            elif [[ -f "${tmp}/applying" ]] ; then
+                gitaction="am"
+            else
+                gitaction="am/rebase"
+            fi
+            printf '%s' ${gitaction}
+            return 0
+        fi
+    done
+
+    for tmp in "${gitdir}/rebase-merge/interactive" \
+               "${gitdir}/.dotest-merge/interactive" ; do
+        if [[ -f "${tmp}" ]] ; then
+            printf '%s' "rebase-i"
+            return 0
+        fi
+    done
+
+    for tmp in "${gitdir}/rebase-merge" \
+               "${gitdir}/.dotest-merge" ; do
+        if [[ -d "${tmp}" ]] ; then
+            printf '%s' "rebase-m"
+            return 0
+        fi
+    done
+
+    if [[ -f "${gitdir}/MERGE_HEAD" ]] ; then
+        printf '%s' "merge"
+        return 0
+    fi
+
+    if [[ -f "${gitdir}/BISECT_LOG" ]] ; then
+        printf '%s' "bisect"
+        return 0
+    fi
+    return 1
+}
+# }}}
+VCS_INFO_git_getbranch () { #{{{
+    local gitbranch gitdir=$1
+    local gitsymref='git symbolic-ref HEAD'
+
+    if    [[ -d "${gitdir}/rebase-apply" ]] \
+       || [[ -d "${gitdir}/rebase" ]]       \
+       || [[ -d "${gitdir}/../.dotest" ]]   \
+       || [[ -f "${gitdir}/MERGE_HEAD" ]] ; then
+        gitbranch="$(${(z)gitsymref} 2> /dev/null)"
+        [[ -z ${gitbranch} ]] && [[ -r ${gitdir}/rebase-apply/head-name ]] \
+            && gitbranch="$(< ${gitdir}/rebase-apply/head-name)"
+
+    elif   [[ -f "${gitdir}/rebase-merge/interactive" ]] \
+        || [[ -d "${gitdir}/rebase-merge" ]] ; then
+        gitbranch="$(< ${gitdir}/rebase-merge/head-name)"
+
+    elif   [[ -f "${gitdir}/.dotest-merge/interactive" ]] \
+        || [[ -d "${gitdir}/.dotest-merge" ]] ; then
+        gitbranch="$(< ${gitdir}/.dotest-merge/head-name)"
+
+    else
+        gitbranch="$(${(z)gitsymref} 2> /dev/null)"
+
+        if [[ $? -ne 0 ]] ; then
+            gitbranch="$(git describe --exact-match HEAD 2>/dev/null)"
+
+            if [[ $? -ne 0 ]] ; then
+                gitbranch="${${"$(< $gitdir/HEAD)"}[1,7]}..."
+            fi
+        fi
+    fi
+
+    printf '%s' "${gitbranch##refs/heads/}"
+    return 0
+}
+# }}}
+VCS_INFO_hg_get_data () { # {{{
+    local hgbranch hgbase
+
+    hgbase=${vcs_comm[basedir]}
+    rrn=${hgbase:t}
+    hgbranch=$(< ${hgbase}/.hg/branch)
+    VCS_INFO_formats '' "${hgbranch}" "${hgbase}"
+    return 0
+}
+# }}}
+VCS_INFO_mtn_get_data () { # {{{
+    setopt localoptions extendedglob
+    local mtnbranch mtnbase
+
+    mtnbase=${vcs_comm[basedir]}
+    rrn=${mtnbase:t}
+    mtnbranch=${${(M)${(f)"$( mtn status )"}:#(#s)Current branch:*}/*: /}
+    VCS_INFO_formats '' "${mtnbranch}" "${mtnbase}"
+    return 0
+}
+# }}}
+VCS_INFO_svk_get_data () { # {{{
+    local svkbranch svkbase
+
+    svkbase=${vcs_comm[basedir]}
+    rrn=${svkbase:t}
+    zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" branchformat svkbranch || svkbranch="%b:%r"
+    zformat -f svkbranch "${svkbranch}" "b:${vcs_comm[branch]}" "r:${vcs_comm[revision]}"
+    VCS_INFO_formats '' "${svkbranch}" "${svkbase}"
+    return 0
+}
+# }}}
+VCS_INFO_svn_get_data () { # {{{
+    setopt localoptions noksharrays extendedglob
+    local svnbase svnbranch
+    local -a svninfo
+
+    svnbase="."
+    while [[ -d "${svnbase}/../.svn" ]]; do
+        svnbase="${svnbase}/.."
+    done
+    svnbase="$(VCS_INFO_realpath ${svnbase})"
+    svninfo=( ${${${(M)${(f)"$( svn info )"}:#(#s)(URL|Revision)*}/*: /}/*\//} )
+
+    rrn=${svnbase:t}
+    zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" branchformat svnbranch || svnbranch="%b:%r"
+    zformat -f svnbranch "${svnbranch}" "b:${svninfo[1]}" "r:${svninfo[2]}"
+    VCS_INFO_formats '' "${svnbranch}" "${svnbase}"
+    return 0
+}
+# }}}
+VCS_INFO_tla_get_data () { # {{{
+    setopt localoptions extendedglob
+    local tlabase tlabranch
+
+    tlabase="$(VCS_INFO_realpath ${vcs_comm[basedir]})"
+    rrn=${tlabase:t}
+    # tree-id gives us something like 'foo@xxxxxxxxxxx/demo--1.0--patch-4', so:
+    tlabranch=${${"$( tla tree-id )"}/*\//}
+    VCS_INFO_formats '' "${tlabranch}" "${tlabase}"
+    return 0
+}
+# }}}
+# detection
+VCS_INFO_detect_by_dir() { #{{{
+    local dirname=$1
+    local basedir="." realbasedir
+
+    realbasedir="$(VCS_INFO_realpath ${basedir})"
+    while [[ ${realbasedir} != '/' ]]; do
+        if [[ -n ${vcs_comm[detect_need_file]} ]] ; then
+            [[ -d ${basedir}/${dirname} ]] && \
+            [[ -f ${basedir}/${dirname}/${vcs_comm[detect_need_file]} ]] && \
+                break
+        else
+            [[ -d ${basedir}/${dirname} ]] && break
+        fi
+
+        basedir=${basedir}/..
+        realbasedir="$(VCS_INFO_realpath ${basedir})"
+    done
+
+    [[ ${realbasedir} == "/" ]] && return 1
+    vcs_comm[basedir]=${realbasedir}
+    return 0
+}
+# }}}
+VCS_INFO_bzr_detect() { #{{{
+    VCS_INFO_check_com bzr || return 1
+    vcs_comm[detect_need_file]=branch/format
+    VCS_INFO_detect_by_dir '.bzr'
+    return $?
+}
+# }}}
+VCS_INFO_cdv_detect() { #{{{
+    VCS_INFO_check_com cdv || return 1
+    vcs_comm[detect_need_file]=format
+    VCS_INFO_detect_by_dir '.cdv'
+    return $?
+}
+# }}}
+VCS_INFO_cvs_detect() { #{{{
+    VCS_INFO_check_com svn || return 1
+    [[ -d "./CVS" ]] && [[ -r "./CVS/Repository" ]] && return 0
+    return 1
+}
+# }}}
+VCS_INFO_darcs_detect() { #{{{
+    VCS_INFO_check_com darcs || return 1
+    vcs_comm[detect_need_file]=format
+    VCS_INFO_detect_by_dir '_darcs'
+    return $?
+}
+# }}}
+VCS_INFO_git_detect() { #{{{
+    if VCS_INFO_check_com git && git rev-parse --is-inside-work-tree &> /dev/null ; then
+        vcs_comm[gitdir]="$(git rev-parse --git-dir 2> /dev/null)" || return 1
+        if   [[ -d ${vcs_comm[gitdir]}/svn ]]             ; then vcs_comm[overwrite_name]='git-svn'
+        elif [[ -d ${vcs_comm[gitdir]}/refs/remotes/p4 ]] ; then vcs_comm[overwrite_name]='git-p4' ; fi
+        return 0
+    fi
+    return 1
+}
+# }}}
+VCS_INFO_hg_detect() { #{{{
+    VCS_INFO_check_com hg || return 1
+    vcs_comm[detect_need_file]=branch
+    VCS_INFO_detect_by_dir '.hg'
+    return $?
+}
+# }}}
+VCS_INFO_mtn_detect() { #{{{
+    VCS_INFO_check_com mtn || return 1
+    vcs_comm[detect_need_file]=revision
+    VCS_INFO_detect_by_dir '_MTN'
+    return $?
+}
+# }}}
+VCS_INFO_svk_detect() { #{{{
+    setopt localoptions noksharrays extendedglob
+    local -i fhash
+    fhash=0
+
+    VCS_INFO_check_com svk || return 1
+    [[ -f ~/.svk/config ]] || return 1
+
+    # This detection function is a bit different from the others.
+    # We need to read svk's config file to detect a svk repository
+    # in the first place. Therefore, we'll just proceed and read
+    # the other information, too. This is more then any of the
+    # other detections do but this takes only one file open for
+    # svk at most. VCS_INFO_svk_get_data() gets simpler, too. :-)
+    while IFS= read -r line ; do
+        if [[ -n ${vcs_comm[basedir]} ]] ; then
+            line=${line## ##}
+            [[ ${line} == depotpath:* ]] && vcs_comm[branch]=${line##*/}
+            [[ ${line} == revision:* ]] && vcs_comm[revision]=${line##*[[:space:]]##}
+            [[ -n ${vcs_comm[branch]} ]] && [[ -n ${vcs_comm[revision]} ]] && break
+            continue
+        fi
+        (( fhash > 0 )) && [[ ${line} == '  '[^[:space:]]*:* ]] && break
+        [[ ${line} == '  hash:'* ]] && fhash=1 && continue
+        (( fhash == 0 )) && continue
+        [[ ${PWD}/ == ${${line## ##}%:*}/* ]] && vcs_comm[basedir]=${${line## ##}%:*}
+    done < ~/.svk/config
+
+    [[ -n ${vcs_comm[basedir]} ]]  && \
+    [[ -n ${vcs_comm[branch]} ]]   && \
+    [[ -n ${vcs_comm[revision]} ]] && return 0
+    return 1
+}
+# }}}
+VCS_INFO_svn_detect() { #{{{
+    VCS_INFO_check_com svn || return 1
+    [[ -d ".svn" ]] && return 0
+    return 1
+}
+# }}}
+VCS_INFO_tla_detect() { #{{{
+    VCS_INFO_check_com tla || return 1
+    vcs_comm[basedir]="$(tla tree-root 2> /dev/null)" && return 0
+    return 1
+}
+# }}}
+# public API
+vcs_info_printsys () { # {{{
+    vcs_info print_systems_
+}
+# }}}
+vcs_info_lastmsg () { # {{{
+    local -i i
+    local -ix maxexports
+
+    VCS_INFO_maxexports
+    for i in {0..$((maxexports - 1))} ; do
+        printf '$VCS_INFO_message_%d_: "' $i
+        if zstyle -T ':vcs_info:formats:command:-all-' use-prompt-escapes ; then
+            print -nP ${(P)${:-VCS_INFO_message_${i}_}}
+        else
+            print -n ${(P)${:-VCS_INFO_message_${i}_}}
+        fi
+        printf '"\n'
+    done
+}
+# }}}
+vcs_info () { # {{{
+    setopt localoptions noksharrays extendedglob
+    local -i found
+    local -a VCSs disabled
+    local -x usercontext vcs rrn
+    local -ix maxexports
+    local -ax msgs
+    local -Ax vcs_comm
+
+    vcs='-init-'; rrn='-all-'
+    VCSs=(git hg bzr darcs svk mtn svn cvs cdv tla)
+    case $1 in
+        (print_systems_)
+            zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" "disable" disabled
+            print -l '# list of supported version control backends:' \
+                     '# disabled systems are prefixed by a hash sign (#)'
+            for vcs in ${VCSs} ; do
+                [[ -n ${(M)disabled:#${vcs}} ]] && printf '#'
+                printf '%s\n' ${vcs}
+            done
+            print -l '# flavours (cannot be used in the disable style; they' \
+                     '# are disabled with their master [git-svn -> git]):'   \
+                     git-{p4,svn}
+            return 0
+            ;;
+        ('')
+            [[ -z ${usercontext} ]] && usercontext=default
+            ;;
+        (*) [[ -z ${usercontext} ]] && usercontext=$1
+            ;;
+    esac
+
+    zstyle -T ":vcs_info:${vcs}:${usercontext}:${rrn}" "enable" || {
+        [[ -n ${VCS_INFO_message_0_} ]] && VCS_INFO_set --clear
+        return 0
+    }
+    zstyle -a ":vcs_info:${vcs}:${usercontext}:${rrn}" "disable" disabled
+    VCS_INFO_maxexports
+
+    (( found = 0 ))
+    for vcs in ${VCSs} ; do
+        [[ -n ${(M)disabled:#${vcs}} ]] && continue
+        vcs_comm=()
+        VCS_INFO_${vcs}_detect && (( found = 1 )) && break
+    done
+
+    (( found == 0 )) && {
+        VCS_INFO_set --nvcs
+        return 0
+    }
+
+    VCS_INFO_${vcs}_get_data || {
+        VCS_INFO_set --nvcs
+        return 1
+    }
+
+    VCS_INFO_set
+    return 0
+}
+
+VCS_INFO_set --nvcs '-preinit-'
+# }}}
