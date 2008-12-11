@@ -43,5 +43,6 @@ link $SOURCE/dot-mc $HOME/.mc
 link $SOURCE/dot-templates $HOME/.templates
 link $SOURCE/dot-elisp $HOME/.elisp
 
+dir $HOME/.ssh/sock
 
 #filter $HOME/.zshrc '' 's/BOINGO-HOSTNAME/nixnix/'

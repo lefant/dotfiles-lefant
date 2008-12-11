@@ -1,6 +1,8 @@
 host *
      HashKnownHosts no
      NoHostAuthenticationForLocalhost yes
+     ControlPath ~/.ssh/sock/%r@%h:%p
+     ControlMaster auto
 
 host localhost
      StrictHostKeyChecking no

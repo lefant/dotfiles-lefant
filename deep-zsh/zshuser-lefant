@@ -12,7 +12,7 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 
 [[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
-
+[[ ! -d ~/.ssh/sock ]] && mkdir ~/.ssh/sock
 
 
 #helper functions
