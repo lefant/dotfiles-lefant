@@ -1,6 +1,7 @@
 host *
      HashKnownHosts no
      NoHostAuthenticationForLocalhost yes
+     ControlMaster auto
 
 host localhost
      StrictHostKeyChecking no
