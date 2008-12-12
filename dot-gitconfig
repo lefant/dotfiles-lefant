@@ -1,5 +1,2 @@
 [color]
-        diff = auto
-        branch = auto
-        interactive = auto
-        status = auto
+ui = auto
