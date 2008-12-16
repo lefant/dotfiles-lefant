@@ -1,6 +1,7 @@
 [general]
 metadata = ~/.offlineimap
-accounts = GandiLefant
+#accounts = GandiLefant
+accounts = GandiE
 maxsyncaccounts = 5
 ignore-readonly = no
 
@@ -26,6 +27,10 @@ statuschar = .
 localrepository = LocalLefant
 remoterepository = GandiLefant
 
+[Account GandiE]
+localrepository = LocalLefant
+remoterepository = GandiE
+
 
 ########## Advanced settings
 
@@ -40,6 +45,18 @@ restoreatime = no
 
 
 [Repository GandiLefant]
+maxconnections = 3
+
+type = IMAP
+ssl = yes
+remotehost = mail.gandi.net
+# remoteport = 993
+remoteuser = lefant@lefant.net
+remotepassfile = ~/.secret/lefant@lefant.net_mail.gandi.net
+
+folderfilter = lambda foldername: foldername not in ['INBOX']
+
+[Repository GandiE]
 maxconnections = 3
 
 type = IMAP

@@ -1,8 +1,8 @@
 host *
      HashKnownHosts no
      NoHostAuthenticationForLocalhost yes
-     ControlPath ~/.ssh/sock/%r@%h:%p
      ControlMaster auto
+     ControlPath ~/.ssh/sock/%r@%h:%p
 
 host localhost
      StrictHostKeyChecking no
@@ -10,6 +10,7 @@ host localhost
 
 host *.local
      AddressFamily inet
+     CheckHostIP no
 
 host hip* hop* hep* al* wave*
      user root
