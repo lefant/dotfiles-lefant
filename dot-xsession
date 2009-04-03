@@ -47,6 +47,11 @@ case `hostname` in
         sudo invoke-rc.d openvpn start lefant &
         STD_APPS="${STD_APPS} xfce4-panel"
         ;;
+    mo)
+        trayer --edge right --expand true --heighttype request --SetDockType true --SetPartialStrut true &
+        xscreensaver -no-splash &
+        STD_APPS="urxvt emacs iceweasel"
+	;;
     *)
         echo "new host here"
         ;;
