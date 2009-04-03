@@ -25,7 +25,7 @@ myTerminal      = "rxvt-unicode"
  
 -- Width of the window border in pixels.
 --
-myBorderWidth   = 1
+myBorderWidth   = 0
  
 -- modMask lets you specify which modkey you want to use. The default
 -- is mod1Mask ("left alt").  You may also consider using mod3Mask
@@ -237,6 +237,7 @@ myManageHook = composeAll
     , className  =? "Icedove-bin" --> doF (W.shift "3" )
     , className  =? "Firefox" --> doF (W.shift "4" )
     , className  =? "Iceweasel" --> doF (W.shift "4" )
+    , className  =? "Opera" --> doF (W.shift "4" )
     , className  =? "Pidgin" --> doF (W.shift "5" )
     , className  =? "xfce4-panel" --> doIgnore
     , resource  =? "desktop_window" --> doIgnore
