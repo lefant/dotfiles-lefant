@@ -4,7 +4,9 @@ source $HOME/.muttrc.mailboxes
 
 
 set from="Fabian Linzberger <e@lefant.net>"
-set reverse_name
+set reverse_name=yes
+set use_from=yes
+set use_envelope_from=yes
 
 
 ignore *
