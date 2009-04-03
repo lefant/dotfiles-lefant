@@ -1,7 +1,7 @@
 ;; general personal stuff
 (setq user-mail-address "e@lefant.net")
 (setq user-host-name "lefant.net")
-(setq user-full-name "fabian linzberger")
+(setq user-full-name "Fabian Linzberger")
 
 
 (server-start)
@@ -109,6 +109,7 @@
 
 
 (load "haskell-conf.el")
+;;(load "erlang-conf.el")
 
 
 
@@ -121,7 +122,6 @@
                     nil))))))
 
 (add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
-
 
 
 (load "local.el")

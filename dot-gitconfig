@@ -1,2 +1,4 @@
 [color]
-ui = auto
+        ui = auto
+[core]
+        excludesfile = "~/.gitignore"
