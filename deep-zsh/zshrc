@@ -50,8 +50,8 @@ export PATH=$PATH:~/.bin
 export TIMEFMT="%U user %S system %P cpu %*E total, running %J"
 export COLORTERM=yes
 
-eval $(lessfile)
-eval $(dircolors)
+[ -e /usr/bin/lessfile ] && eval $(lessfile)
+[ -e /usr/bin/dircolors ] && eval $(dircolors)
 export LESSCHARSET=UTF-8
 export LESS='-iFRSX'
 
