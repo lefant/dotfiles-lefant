@@ -123,7 +123,7 @@ myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $
  
     -- Swap the focused window with the previous window
     --, ((modMask .|. shiftMask, xK_l     ), spawn "exec xscreensaver-command -activate & gnome-screensaver-command --activate")
-    , ((modMask .|. shiftMask, xK_l     ), spawn "exe=`xscreensaver-command -activate || gnome-screensaver-command --activate` && eval \"exec $exe\"")
+    , ((modMask .|. shiftMask, xK_l     ), spawn "exe=`xscreensaver-command -lock || gnome-screensaver-command --activate` && eval \"exec $exe\"")
 
     -- Shrink the master area
     , ((modMask,               xK_h     ), sendMessage Shrink)
@@ -264,7 +264,7 @@ main = do
         workspaces         = myWorkspaces,
         normalBorderColor  = myNormalBorderColor,
         focusedBorderColor = myFocusedBorderColor,
-        defaultGaps        = myDefaultGaps,
+      -- defaultGaps        = myDefaultGaps,
  
       -- key bindings
         keys               = myKeys,
