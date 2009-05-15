@@ -3,6 +3,7 @@ host *
      NoHostAuthenticationForLocalhost yes
      ControlMaster auto
      ControlPath ~/.ssh/sock/%r@%h:%p
+     VisualHostKey yes
 
 host localhost
      StrictHostKeyChecking no
