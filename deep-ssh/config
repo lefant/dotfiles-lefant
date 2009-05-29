@@ -13,7 +13,7 @@ host *.local
      AddressFamily inet
      CheckHostIP no
 
-host hip* hop* hep* al* wave* skib* mixer*
+host hip* hop* hep* al* wave* skib* mixer* tune*
      user root
 
 host rd01* srv2*
