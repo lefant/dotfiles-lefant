@@ -5,6 +5,7 @@ host *
      ControlPath ~/.ssh/sock/%r@%h:%p
      VisualHostKey yes
 
+
 host localhost
      StrictHostKeyChecking no
      UserKnownHostsFile /dev/null
@@ -13,17 +14,19 @@ host *.local
      AddressFamily inet
      CheckHostIP no
 
+host *.42.lefant.net
+     AddressFamily inet6
+
+
 host hip* hop* hep* al* wave* skib* mixer* tune*
      user root
 
-host rd01* srv2*
-     port 55022
-
 host keisanki.net
      port 22007
-
 host heraklit*
      port 22222
-
+host rd01* srv2*
+     port 55022
 host vpn-* bar-*
      user root
+
