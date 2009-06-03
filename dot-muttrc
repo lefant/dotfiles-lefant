@@ -110,3 +110,4 @@ set pgp_verify_sig=no
 
 #set pgp_sign_as=0x6C9BA1DF
 set pgp_sign_as=0x6A7C4750
+set pgp_use_gpg_agent=yes
