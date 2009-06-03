@@ -4,7 +4,7 @@ host *
      ControlMaster auto
      ControlPath ~/.ssh/sock/%r@%h:%p
      VisualHostKey yes
-
+     ProxyCommand monkeysphere ssh-proxycommand %h %p
 
 host localhost
      StrictHostKeyChecking no
