@@ -4,7 +4,7 @@ host *
      ControlMaster auto
      ControlPath ~/.ssh/sock/%r@%h:%p
      VisualHostKey yes
-     ProxyCommand monkeysphere ssh-proxycommand %h %p
+     #ProxyCommand monkeysphere ssh-proxycommand %h %p
 
 host localhost
      StrictHostKeyChecking no
@@ -17,6 +17,9 @@ host *.local
 host *.42.lefant.net
      AddressFamily inet6
 
+host sh.lefant.net
+     user e
+     AddressFamily inet6
 
 host hip* hop* hep* al* wave* skib* mixer* tune*
      user root

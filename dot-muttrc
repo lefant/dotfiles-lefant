@@ -103,6 +103,7 @@ macro index \eM "<shell-escape>mairix " "Run a Mairix search"
 macro index \eF "<change-folder-readonly>$HOME/.mairix-results/\n" "Switch to Mairix virtual folder"
 
 
+set query_command="lbdbq '%s'"
 
 
 macro index S ":toggle pgp_verify_sig\n"
