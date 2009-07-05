@@ -278,7 +278,7 @@ main = do
         logHook            = ewmhDesktopsLogHook,
 
       -- modMask dependent on host
-        modMask            = (if (host == "nix" || host == "mu" || host == "end") then
+        modMask            = (if (host == "nix" || host == "mu" || host == "end" || host == "atom") then
                                  mod1Mask
                                else
                                  mod4Mask)
