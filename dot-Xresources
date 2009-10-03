@@ -11,7 +11,7 @@ URxvt.perl-ext:           default,matcher
 URxvt.urlLauncher:        sensible-browser
 URxvt.keysym.C-Delete:    perl:matcher
 URxvt.underlineURLs:      true
-
+URxvt.urgentOnBell:       true
 
 *scrollBar:		false
 *background:            black
