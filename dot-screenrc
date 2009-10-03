@@ -4,7 +4,7 @@ screen 0 zsh
 defutf8               on
 deflogin              off
 startup_message       off
-vbell                 on
+vbell                 off
 nethack on
 bell_msg	'Bell in %n'
 altscreen off

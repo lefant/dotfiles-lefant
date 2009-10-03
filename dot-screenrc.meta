@@ -6,7 +6,7 @@ defutf8               on
 login                 off
 deflogin              off
 startup_message       off
-vbell                 on
+vbell                 off
 bell_msg	'Bell in %n'
 
 termcapinfo xterm*|linux*|rxvt*|Eterm* OP
