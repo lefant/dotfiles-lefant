@@ -5,7 +5,7 @@ accounts = GandiE
 maxsyncaccounts = 5
 ignore-readonly = no
 
-ui = Curses.Blinkenlights, TTY.TTYUI,
+ui = TTY.TTYUI, Curses.Blinkenlights,
      Noninteractive.Basic, Noninteractive.Quiet
 
 
