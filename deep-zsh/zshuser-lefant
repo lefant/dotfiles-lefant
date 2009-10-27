@@ -13,7 +13,11 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 
 [[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
-[[ ! -d ~/.ssh/sock ]] && mkdir ~/.ssh/sock
+
+for dir in ~/.ssh/sock ~/.sshfs/lefant-sshfs@sh.lefant.net ~/.encfs/lefant-sshfs@sh.lefant.net
+do
+    [[ ! -d $dir ]] && mkdir -p $dir
+done
 
 
 #helper functions
@@ -116,13 +120,27 @@ case $STY in
         if [ -z $SSH_TTY ]; then
             case `hostname` in
                 nix)
-                    sudo invoke-rc.d openvpn start validad
+                    # sudo invoke-rc.d openvpn start validad
                     ;;
                 *)
                     ;;
             esac
-            [[ -e /usr/bin/afuse ]] && touch /dev/fuse &>/dev/null && \
-                afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
+
+            if touch /dev/fuse &>/dev/null
+            then
+                # [[ -e /usr/bin/afuse ]] && \
+                # afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
+
+                if [ -e /usr/bin/sshfs -a -e /usr/bin/encfs ]
+                then
+                    sshfs -o reconnect -o idmap=user \
+                        lefant-sshfs@sh.lefant.net: \
+                        ~/.sshfs/lefant-sshfs@sh.lefant.net/
+                    encfs -S ~/.sshfs/lefant-sshfs@sh.lefant.net/ \
+                        ~/.encfs/lefant-sshfs@sh.lefant.net/ \
+                        < ~/.secret/encfs/lefant-sshfs@sh.lefant.net
+                fi
+            fi
 
             # run zeiterfassung start
 	    cd ~/shared/arbeitszeit/`hostname`
@@ -135,8 +153,16 @@ case $STY in
             # run zeiterfassung end
 	    cd ~/shared/arbeitszeit/`hostname`
 	    echo "work" |~/shared/code/python/timelog/timelog.py
+
+	    # killall afuse
+
 	    unison -silent &
-	    killall afuse
+
+            for dir in ~/.sshfs/lefant-sshfs@sh.lefant.net ~/.encfs/lefant-sshfs@sh.lefant.net
+            do
+                mount |grep -q $dir && fusermount -u -z $dir
+            done
+
             kdestroy
             rm /tmp/krb5cc_*
         else
@@ -144,4 +170,3 @@ case $STY in
         fi
         ;;
 esac
-
