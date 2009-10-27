@@ -146,7 +146,7 @@ case $STY in
 	    cd ~/shared/arbeitszeit/`hostname`
 	    echo "arrived **" |~/shared/code/python/timelog/timelog.py
 	    cd ~
-	    unison -silent &
+	    [[ -d ~/.encfs/lefant-sshfs@sh.lefant.net/shared ]] && unison -silent &
 
             screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
 
@@ -156,7 +156,7 @@ case $STY in
 
 	    # killall afuse
 
-	    unison -silent &
+	    [[ -d ~/.encfs/lefant-sshfs@sh.lefant.net/shared ]] && unison -silent
 
             for dir in ~/.sshfs/lefant-sshfs@sh.lefant.net ~/.encfs/lefant-sshfs@sh.lefant.net
             do
