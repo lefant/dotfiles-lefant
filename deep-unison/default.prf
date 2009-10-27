@@ -1,12 +1,13 @@
-root = /home/lefant/.encfs/lefant-sshfs@sh.lefant.net
-root = /home/lefant
+root = /home/lefant/.enc/lefant-sshfs@sh.lefant.net/
+root = ssh://lefant-sshfs@sh.lefant.net//home/lefant-sshfs/
+
+path = shared
 
 logfile = /home/lefant/.unison/unison.log
 
 auto = true
 batch = true
+#debug = all
 
-path = shared
-
-
-ignore = Name {*.o,*.*~}
+sshargs = -q -o VisualHostKey=no
+retry = 1

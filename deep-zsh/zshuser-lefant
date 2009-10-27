@@ -14,7 +14,7 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 [[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
-for dir in ~/.ssh/sock ~/.sshfs/lefant-sshfs@sh.lefant.net ~/.encfs/lefant-sshfs@sh.lefant.net
+for dir in ~/.ssh/sock ~/shared ~/.enc/lefant-sshfs@sh.lefant.net
 do
     [[ ! -d $dir ]] && mkdir -p $dir
 done
@@ -126,19 +126,18 @@ case $STY in
                     ;;
             esac
 
+            unison -silent -terse
+
             if touch /dev/fuse &>/dev/null
             then
                 # [[ -e /usr/bin/afuse ]] && \
                 # afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
 
-                if [ -e /usr/bin/sshfs -a -e /usr/bin/encfs ]
+                if [ -e /usr/bin/encfs ]
                 then
-                    sshfs -o reconnect -o idmap=user \
-                        lefant-sshfs@sh.lefant.net: \
-                        ~/.sshfs/lefant-sshfs@sh.lefant.net/
-                    encfs -S ~/.sshfs/lefant-sshfs@sh.lefant.net/ \
-                        ~/.encfs/lefant-sshfs@sh.lefant.net/ \
-                        < ~/.secret/encfs/lefant-sshfs@sh.lefant.net
+                    encfs -S ~/.enc/lefant-sshfs@sh.lefant.net/shared/ \
+                        ~/shared/ \
+                        < ~/.secret/encfs/shared
                 fi
             fi
 
@@ -146,7 +145,6 @@ case $STY in
 	    cd ~/shared/arbeitszeit/`hostname`
 	    echo "arrived **" |~/shared/code/python/timelog/timelog.py
 	    cd ~
-	    [[ -d ~/.encfs/lefant-sshfs@sh.lefant.net/shared ]] && unison -silent &
 
             screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
 
@@ -156,12 +154,8 @@ case $STY in
 
 	    # killall afuse
 
-	    [[ -d ~/.encfs/lefant-sshfs@sh.lefant.net/shared ]] && unison -silent
-
-            for dir in ~/.sshfs/lefant-sshfs@sh.lefant.net ~/.encfs/lefant-sshfs@sh.lefant.net
-            do
-                mount |grep -q $dir && fusermount -u -z $dir
-            done
+            mount |grep -q ~/shared && fusermount -u -z ~/shared
+            unison -silent -terse
 
             kdestroy
             rm /tmp/krb5cc_*
