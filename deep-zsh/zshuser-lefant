@@ -14,7 +14,7 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 [[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
-for dir in ~/.ssh/sock ~/shared ~/.enc/lefant-sshfs@sh.lefant.net
+for dir in ~/.ssh/sock ~/.encfs ~/.enc/lefant-sshfs@sh.lefant.net_shared
 do
     [[ ! -d $dir ]] && mkdir -p $dir
 done
@@ -135,9 +135,10 @@ case $STY in
 
                 if [ -e /usr/bin/encfs ]
                 then
-                    encfs -S ~/.enc/lefant-sshfs@sh.lefant.net/shared/ \
-                        ~/shared/ \
-                        < ~/.secret/encfs/shared
+                    afuse \
+                        -o mount_template='sh -c "encfs -S ~/.enc/%r %m <~/.secret/encfs/%r"' \
+                        -o unmount_template="fusermount -u -z %m" \
+                        ~/.encfs
                 fi
             fi
 
@@ -152,9 +153,7 @@ case $STY in
 	    cd ~/shared/arbeitszeit/`hostname`
 	    echo "work" |~/shared/code/python/timelog/timelog.py
 
-	    # killall afuse
-
-            mount |grep -q ~/shared && fusermount -u -z ~/shared
+            mount |grep -q ~/.encfs && fusermount -u -z ~/.encfs
 
             unison -silent -terse &
 
