@@ -14,7 +14,7 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 [[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
-for dir in ~/.ssh/sock ~/.encfs ~/.enc/lefant-sshfs@sh.lefant.net_shared
+for dir in ~/.ssh/sock ~/.encfs
 do
     [[ ! -d $dir ]] && mkdir -p $dir
 done
@@ -155,10 +155,11 @@ case $STY in
 
             mount |grep -q ~/.encfs && fusermount -u -z ~/.encfs
 
-            unison -silent -terse &
-
             kdestroy
             rm /tmp/krb5cc_*
+
+            unison -silent -terse
+            exit 0
         else
             screen -a -A -d -RR -S local
         fi

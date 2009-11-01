@@ -1,4 +1,4 @@
-root = /home/lefant/.enc/lefant-sshfs@sh.lefant.net_shared/
+root = /home/.enc/lefant-sshfs@sh.lefant.net_shared/
 root = ssh://lefant-sshfs@sh.lefant.net//home/lefant-sshfs/shared/
 
 logfile = /home/lefant/.unison/unison.log
