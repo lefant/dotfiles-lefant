@@ -136,7 +136,7 @@ case $STY in
                 if [ -e /usr/bin/encfs ]
                 then
                     afuse \
-                        -o mount_template='sh -c "encfs -S ~/.enc/%r %m <~/.secret/encfs/%r"' \
+                        -o mount_template='sh -c "encfs -S /home/.enc/%r %m <~/.secret/encfs/%r"' \
                         -o unmount_template="fusermount -u -z %m" \
                         ~/.encfs
                 fi
