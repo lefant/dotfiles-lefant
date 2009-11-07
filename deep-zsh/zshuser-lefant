@@ -159,6 +159,7 @@ case $STY in
             rm /tmp/krb5cc_*
 
             unison -silent -terse
+            disown
             exit 0
         else
             screen -a -A -d -RR -S local
