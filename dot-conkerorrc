@@ -1,0 +1,42 @@
+
+// use d to follow in new buffer
+define_key(content_buffer_normal_keymap, "d", "follow-new-buffer");
+
+
+
+
+//
+// open in new buffer in background via middle click
+//////////////////////////////////////////////////
+
+require("clicks-in-new-buffer.js");
+
+// Set to either OPEN_NEW_BUFFER or OPEN_NEW_BUFFER_BACKGROUND
+clicks_in_new_buffer_target = OPEN_NEW_BUFFER_BACKGROUND; // Now buffers open in background.
+
+// Set to 0 = left mouse, 1 = middle mouse, 2 = right mouse
+clicks_in_new_buffer_button = 1; //  Now right mouse follows links in new buffers.
+
+
+
+// delicious post
+//////////////////////////////////////////////////
+
+interactive("delicious-post",
+            "bookmark the page via delicious",
+            function (I) {
+            check_buffer(I.buffer, content_buffer);
+            let sendurl = 'https://api.del.icio.us/v1/posts/add?&url=' + 
+            I.buffer.display_uri_string + '&description=' + 
+            (yield I.minibuffer.read($prompt = "name (required): " , $initial_value = I.buffer.title)) + 
+            '&tags=' + (yield I.minibuffer.read($prompt = "tags (space delimited): ")) + 
+            '&extended=' + (yield I.minibuffer.read($prompt = "extended description: "))
+            ;
+            var content = yield send_http_request(
+                      load_spec({uri: sendurl}));
+            I.window.minibuffer.message(content.responseText);
+            });
+
+define_key(default_global_keymap, "p", "delicious-post");
+
+define_webjump("del", "http://delicious.com/search?p=%s&chk=&context=userposts%7Clefant&fr=del_icio_us&lc=");
