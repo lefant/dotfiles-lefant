@@ -40,3 +40,6 @@ interactive("delicious-post",
 define_key(default_global_keymap, "p", "delicious-post");
 
 define_webjump("del", "http://delicious.com/search?p=%s&chk=&context=userposts%7Clefant&fr=del_icio_us&lc=");
+
+
+define_webjump("ghc", "file:///usr/share/doc/ghc6-doc/libraries/index.html");
