@@ -67,10 +67,16 @@ editor_edit_confirm_save=1
 editor_syntax_highlighting=1
 nice_rotating_dash=1
 horizontal_split=0
+confirm_directory_hotlist_delete=1
+fish_directory_timeout=900
+editor_visible_tabs=1
+editor_visible_spaces=1
+mcview_remember_file_position=0
+editor_backup_extension=~
 
 [Layout]
 equal_split=1
-first_panel_size=50
+first_panel_size=68
 message_visible=1
 keybar_visible=1
 xterm_title=1
@@ -98,6 +104,7 @@ user_status2=half type name | size | perm
 user_status3=half type name | size | perm
 user_mini_status=0
 panel_display_codepage=Other_8_bit
+exec_first=0
 
 [New Right Panel]
 display=listing
@@ -112,6 +119,7 @@ user_status2=half type name | size | perm
 user_status3=half type name | size | perm
 user_mini_status=0
 panel_display_codepage=Other_8_bit
+exec_first=0
 
 [Misc]
 ftpfs_password=anonymous@
