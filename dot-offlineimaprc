@@ -31,11 +31,12 @@ remoterepository = GandiLefant
 localrepository = LocalLefant
 remoterepository = GandiE
 
-
 ########## Advanced settings
 
 autorefresh = 5
 # quick = 10
+presynchook = imapfilter
+postsynchook = /home/lefant/.bin/handle_email_hook.sh
 
 [Repository LocalLefant]
 type = Maildir
