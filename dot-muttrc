@@ -98,9 +98,10 @@ alternative_order text/enriched text/plain text/html
 # Last, but not least, get mutt to display its version on startup.
 push <show-version>
 
+macro index \Cx "s=archive/`date +'%Y-%m'`"
+macro pager \Cx "s=archive/`date +'%Y-%m'`"
 
-macro index \eM "<shell-escape>mairix " "Run a Mairix search"
-macro index \eF "<change-folder-readonly>$HOME/.mairix-results/\n" "Switch to Mairix virtual folder"
+
 
 
 set query_command="lbdbq '%s'"
