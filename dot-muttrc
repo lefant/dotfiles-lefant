@@ -99,8 +99,8 @@ alternative_order text/enriched text/plain text/html
 # Last, but not least, get mutt to display its version on startup.
 push <show-version>
 
-macro index \Cx "s=zzz_archive.`date +'%Y-%m'`\n"
-macro pager \Cx "s=zzz_archive.`date +'%Y-%m'`\n"
+macro index \Cx "s=zz_`date +'%Y-%m'`\n"
+macro pager \Cx "s=zz_`date +'%Y-%m'`\n"
 
 
 
