@@ -1,6 +1,5 @@
 [general]
 metadata = ~/.offlineimap
-#accounts = GandiLefant
 accounts = GandiE
 maxsyncaccounts = 5
 ignore-readonly = no
@@ -19,43 +18,37 @@ peritem = =%(foldername)s
 sep = ' '
 footer = "\n"
 
-[ui.Curses.Blinkenlights]
-statuschar = .
 
-
-[Account GandiLefant]
-localrepository = LocalLefant
-remoterepository = GandiLefant
 
 [Account GandiE]
 localrepository = LocalLefant
 remoterepository = GandiE
 
+presynchook = imapfilter
+postsynchook = /home/lefant/.bin/handle_email_hook.sh
+
+
+#[Account EGandi]
+#remoterepository = LocalLefantImap
+#localrepository = GandiE
+
 ########## Advanced settings
 
 autorefresh = 5
 # quick = 10
-presynchook = imapfilter
-postsynchook = /home/lefant/.bin/handle_email_hook.sh
 
 [Repository LocalLefant]
 type = Maildir
 localfolders = ~/MaildirGandiLefant
+
+# gandi.net imap uses . as seperator between folders and subfolders
 sep = .
 restoreatime = no
 
+#[Repository LocalLefantImap]
+#type = IMAP
+#preauthtunnel = /usr/sbin/dovecot --exec-mail imap
 
-[Repository GandiLefant]
-maxconnections = 3
-
-type = IMAP
-ssl = yes
-remotehost = mail.gandi.net
-# remoteport = 993
-remoteuser = lefant@lefant.net
-remotepassfile = ~/.secret/lefant@lefant.net_mail.gandi.net
-
-folderfilter = lambda foldername: foldername not in ['INBOX']
 
 [Repository GandiE]
 maxconnections = 3
@@ -63,7 +56,6 @@ maxconnections = 3
 type = IMAP
 ssl = yes
 remotehost = mail.gandi.net
-# remoteport = 993
 remoteuser = e@lefant.net
 remotepassfile = ~/.secret/lefant@lefant.net_mail.gandi.net
 

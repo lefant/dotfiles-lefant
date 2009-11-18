@@ -2,6 +2,7 @@ set mbox_type=Maildir
 set folder=$HOME/MaildirGandiLefant
 source $HOME/.muttrc.mailboxes
 
+set spoolfile=+/e
 
 set from="Fabian Linzberger <e@lefant.net>"
 set reverse_name=yes
@@ -10,7 +11,7 @@ set use_envelope_from=yes
 
 
 ignore *
-unignore From: To: Cc: Bcc: Subject: Date:
+unignore From: To: Cc: Bcc: Subject: Date: X-Label:
 
 # what exactly do those mean?
 #set folder_format="%2C %t %N %F %2l %-8.8u %-8.8g %8s %d %f"
@@ -98,8 +99,8 @@ alternative_order text/enriched text/plain text/html
 # Last, but not least, get mutt to display its version on startup.
 push <show-version>
 
-macro index \Cx "s=archive/`date +'%Y-%m'`"
-macro pager \Cx "s=archive/`date +'%Y-%m'`"
+macro index \Cx "s=zzz_archive.`date +'%Y-%m'`\n"
+macro pager \Cx "s=zzz_archive.`date +'%Y-%m'`\n"
 
 
 
