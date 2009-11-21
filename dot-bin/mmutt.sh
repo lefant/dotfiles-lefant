@@ -1,4 +1,4 @@
 #!/bin/sh
 
 mairix $@
-mutt -f ~/.mairix-results/
+mutt -R -f ~/.mairix-results/
