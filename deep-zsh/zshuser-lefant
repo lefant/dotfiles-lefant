@@ -130,8 +130,14 @@ case $STY in
 
             if touch /dev/fuse &>/dev/null
             then
-                # [[ -e /usr/bin/afuse ]] && \
-                # afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
+                if [ -e /usr/bin/afuse ]
+                then
+                    afuse \
+                        -o mount_template="sshfs \
+                        -o reconnect %r: %m" \
+                        -o unmount_template="fusermount -u -z %m" \
+                        ~/sshfs/ &
+                fi
 
                 if [ -e /usr/bin/encfs ]
                 then
