@@ -13,7 +13,8 @@
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 
 
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
+;;; try without automatic auto-fill for a while again
+; (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 (column-number-mode 1)
 (display-time-mode 1)
@@ -64,8 +65,11 @@
 		("\\.t$" 	. cperl-mode)
 		("\\.org$" 	. org-mode)
 		("\\.tt$" 	. tt-mode)
-		("\\.tt2$" 	. tt-mode))
+		("\\.tt2$" 	. tt-mode)
+                ("/mutt"        . message-mode))
 	      auto-mode-alist))
+
+(add-hook 'message-mode-hook 'turn-on-filladapt-mode)
 
 
 (require 'org)
