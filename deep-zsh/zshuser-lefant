@@ -133,8 +133,7 @@ case $STY in
                 if [ -e /usr/bin/afuse ]
                 then
                     afuse \
-                        -o mount_template="sshfs \
-                        -o reconnect %r: %m" \
+                        -o mount_template="sshfs -o reconnect %r:/ %m" \
                         -o unmount_template="fusermount -u -z %m" \
                         ~/sshfs/ &
                 fi
@@ -166,7 +165,7 @@ case $STY in
 
             unison -silent -terse
             disown
-            exit 0
+            #exit 0
         else
             screen -a -A -d -RR -S local
         fi
