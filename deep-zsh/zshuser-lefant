@@ -23,11 +23,7 @@ done
 #helper functions
 find_best_editor () {
     if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]; then
-        if [ -f /usr/bin/emacsclient.emacs-snapshot ]; then
-            export EDITOR="emacsclient -c"
-        else
-            export EDITOR="emacsclient"
-        fi
+        export EDITOR="emacsclient -c"
     elif [ -f /usr/bin/mg ]; then
         export EDITOR="mg -n"
     elif [ -f /usr/bin/zile ]; then
