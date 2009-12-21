@@ -17,10 +17,6 @@ host *.local
 host *.42.lefant.net
      AddressFamily inet6
 
-host sh.lefant.net
-     user e
-     AddressFamily inet6
-
 host hip* hop* hep* al* wave* skib* mixer* tune* geri* gifur*
      user root
 
