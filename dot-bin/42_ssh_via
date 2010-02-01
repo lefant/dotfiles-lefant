@@ -9,4 +9,4 @@ shift
 targethost=$1
 shift
 
-ssh -4 -o "ProxyCommand ssh $proxyhost nc $targethost 22" $targethost ${@}
+ssh -4 -o "ProxyCommand ssh -4 $proxyhost nc $targethost 22" $targethost ${@}
