@@ -236,6 +236,7 @@ myManageHook = composeAll
     , className  =? "Thunderbird-bin" --> doF (W.shift "3" )
     , className  =? "Icedove-bin" --> doF (W.shift "3" )
     , className  =? "Firefox" --> doF (W.shift "4" )
+    , className  =? "Google-chrome" --> doF (W.shift "4" )
     , className  =? "Iceweasel" --> doF (W.shift "4" )
     , className  =? "Opera" --> doF (W.shift "4" )
     , className  =? "Pidgin" --> doF (W.shift "5" )
