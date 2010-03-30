@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# compare
+# http://mirko.dziadzka.net/papers/ssh-gateway/html/ssh-gateway.html
+# http://wiki.42.lefant.net/Howtos/ConnectToVzViaSSHTunnel
+
+proxyhost=$1
+shift
+targethost=$1
+shift
+
+ssh -4 -o "ProxyCommand ssh -4 $proxyhost nc $targethost 22" $targethost ${@}
