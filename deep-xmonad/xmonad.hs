@@ -199,7 +199,7 @@ myMouseBindings (XConfig {XMonad.modMask = modMask}) = M.fromList $
 -- The available layouts.  Note that each layout is separated by |||,
 -- which denotes layout choice.
 --
-myLayout = ewmhDesktopsLayout $ avoidStruts $ Full ||| tiled ||| Mirror tiled
+myLayout = avoidStruts $ Full ||| tiled ||| Mirror tiled
   where
      -- default tiling algorithm partitions the screen into two panes
      tiled   = Tall nmaster delta ratio
@@ -257,7 +257,7 @@ myFocusFollowsMouse = True
 --
 main = do
      host <- fmap nodeName getSystemID
-     xmonad $ defaultConfig {
+     xmonad $ ewmh defaultConfig {
       -- simple stuff
         terminal           = myTerminal,
         focusFollowsMouse  = myFocusFollowsMouse,
