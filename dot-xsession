@@ -24,7 +24,7 @@ STD_APPS="xfce4-panel urxvt emacs"
 grep -q ubuntu /etc/apt/sources.list
 if [ $? -eq 0 ]
 then
-    STD_APPS="${STD_APPS} gnome-screensaver firefox"
+    STD_APPS="${STD_APPS} gnome-screensaver chromium-browser"
 else
     STD_APPS="${STD_APPS} xscreensaver iceweasel"
 fi
@@ -41,7 +41,7 @@ case `hostname` in
         ;;
     mu)
         sh -c "sleep 5 && sudo nm-applet" &
-        STD_APPS="xfce4-panel urxvt emacs gnome-screensaver firefox"
+        STD_APPS="xfce4-panel urxvt emacs gnome-screensaver chromium-browser"
         ;;
     delefant)
         sudo invoke-rc.d openvpn start lefant &
