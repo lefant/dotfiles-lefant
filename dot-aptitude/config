@@ -1,14 +1,10 @@
 aptitude "";
-aptitude::Keep-Unused-Pattern "";
 aptitude::Delete-Unused-Pattern "";
-aptitude::Recommends-Important "false";
 aptitude::UI "";
+aptitude::UI::Minibuf-Prompts "true";
 aptitude::UI::Prompt-On-Exit "false";
-aptitude::UI::Pause-After-Download "No";
 aptitude::UI::Minibuf-Download-Bar "true";
 aptitude::UI::Advance-On-Action "true";
 aptitude::UI::Default-Grouping "status";
-aptitude::UI::Minibuf-Prompts "true";
-aptitude::Ignore-Recommends-Important "true";
-APT "";
-APT::Install-Recommends "false";
+Apt "";
+Apt::Install-Recommends "false";
