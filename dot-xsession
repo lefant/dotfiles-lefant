@@ -1,6 +1,7 @@
 
 # proper keyboard ;)
-setxkbmap dvorak
+setxkbmap dvorak -option compose:ralt -option ctrl:nocaps
+
 if [ -f $HOME/.xmodmap ]
 then 
     xmodmap $HOME/.xmodmap
