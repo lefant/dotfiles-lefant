@@ -36,9 +36,8 @@ case `hostname` in
     nix)
         STD_APPS="${STD_APPS}"
         ;;
-    end)
-        sh -c "sleep 5 && sudo nm-applet" &
-        STD_APPS="xfce4-panel urxvt emacs xscreensaver iceweasel"
+    tul)
+        STD_APPS="${STD_APPS} nm-applet"
         ;;
     mu)
         # sh -c "sleep 5 && sudo nm-applet" &
