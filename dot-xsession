@@ -1,82 +1,36 @@
+. $HOME/.common.sh
 
-# proper keyboard ;)
-setxkbmap dvorak -option compose:ralt -option ctrl:nocaps
-
-if [ -f $HOME/.xmodmap ]
-then 
-    xmodmap $HOME/.xmodmap
-fi
+# proper keyboard settings
+setxkbmap dvorak -option compose:ralt -option compose:rwin -option ctrl:nocaps
 
 # no sound, no blanking
 xset s off
 xset b off
 
 
-if [ -e /usr/bin/afuse ]
-then
-    touch /dev/fuse &>/dev/null && pgrep afuse &>/dev/null || \
-        afuse -o mount_template="sshfs -o reconnect %r: %m" -o unmount_template="fusermount -u -z %m" ~/sshfs/ &
-fi
+BROWSER=$(find_best chromium-browser google-chrome firefox opera x-www-browser)
+SCREENSAVER=$(find_best gnome-screensaver xscreensaver)
+WINDOW_MANAGER=$(find_best xmonad ratpoison fluxbox openbox blackbox wmaker x-window-manager)
 
-
-
-STD_APPS="xfce4-panel urxvt emacs"
-
-grep -q ubuntu /etc/apt/sources.list
-if [ $? -eq 0 ]
-then
-    STD_APPS="${STD_APPS} gnome-screensaver x-www-browser"
-else
-    STD_APPS="${STD_APPS} xscreensaver x-www-browser"
-fi
+STD_APPS="urxvt emacs $BROWSER $SCREENSAVER"
 
 
 # host dependent wm/session and startup things
 case `hostname` in
     nix)
-        STD_APPS="${STD_APPS}"
+        launch_all $STD_APPS
+        exec $WINDOW_MANAGER
         ;;
     tul)
-        STD_APPS="${STD_APPS} nm-applet"
+        #STD_APPS="${STD_APPS} nm-applet xfce4-panel"
+        gnome-session
         ;;
     mu)
         # sh -c "sleep 5 && sudo nm-applet" &
         STD_APPS="${STD_APPS}"
+        exec $WINDOW_MANAGER
         ;;
-    delefant)
-        sudo invoke-rc.d openvpn start lefant &
-        STD_APPS="${STD_APPS} xfce4-panel"
-        ;;
-    mo)
-        trayer --edge right --expand true --heighttype request --SetDockType true --SetPartialStrut true &
-        xscreensaver -no-splash &
-        STD_APPS="urxvt emacs iceweasel"
-	;;
     *)
         echo "new host here"
         ;;
 esac
-
-
-# launch standard apps
-for app in $STD_APPS
-do
-    sh -c "sleep 0.1 && $app" &
-done
-
-
-
-# find favourite windowmanager and launch it
-for i in x-window-manager wwmaker blackbox openbox fluxbox ratpoison xmonad; do
-    if [ -f /usr/bin/$i ]
-    then
-        export MYSTARTUP=$i
-    fi
-done
-$MYSTARTUP
-
-
-
-#         [[ -e /usr/bin/unclutter ]] && unclutter -idle 2 -reset -root -jitter 8 &
-#         [[ -e /usr/bin/xscreensaver ]] && [[ ! -f $HOME/.donotlockme ]] && xscreensaver &
-#         [[ -e /usr/bin/xwrits ]] && [[ ! -f $HOME/.noxwrits ]] && xwrits --typetime=50 --breaktime=3 +breakclock +clock &
