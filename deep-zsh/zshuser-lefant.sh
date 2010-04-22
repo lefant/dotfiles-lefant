@@ -11,7 +11,7 @@ export GPGKEY=C02860F0
 alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && sudo ./Build install"
 
 
-[[ ! -e ~/.zsh/zshlocal ]] && cp -v ~/.templates/zshlocal ~/.zsh/zshlocal
+[[ ! -e ~/.zsh/zshlocal.sh ]] && cp -v ~/.templates/zshlocal.sh ~/.zsh/zshlocal.sh
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
 for dir in ~/.ssh/sock ~/.encfs
@@ -22,16 +22,11 @@ done
 
 #helper functions
 find_best_editor () {
-    if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]; then
+    if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]
+    then
         export EDITOR="emacsclient -c"
-    elif [ -f /usr/bin/mg ]; then
-        export EDITOR="mg -n"
-    elif [ -f /usr/bin/zile ]; then
-        export EDITOR="zile"
-    elif [ -f /usr/bin/nano ]; then
-        export EDITOR="nano"
-    elif [ -f /usr/bin/vim ]; then
-        export EDITOR="vim"
+    else
+        export EDITOR=$(find_best mg zile nano vim)
     fi
     export VISUAL=$EDITOR
     alias e="$EDITOR"
@@ -69,6 +64,9 @@ fix_env () {
     maybe_source_keychain
     maybe_krb5ccnamesh
     find_best_editor
+
+    watch=(notme)
+    #setopt notify
 }
 
 maybe_run_keychain () {
@@ -95,6 +93,7 @@ case $STY in
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
         }
+        setopt notify
         ;;
     *.meta)
         preexec () {
@@ -122,7 +121,8 @@ case $STY in
                     ;;
             esac
 
-            unison -silent -terse &>/dev/null &
+            unsetopt notify
+            unison -silent -terse &>/dev/null
 
             if touch /dev/fuse &>/dev/null
             then
@@ -143,25 +143,24 @@ case $STY in
                 fi
             fi
 
-            # run zeiterfassung start
-	    cd ~/shared/arbeitszeit/`hostname`
-	    echo "arrived **" |~/shared/code/python/timelog/timelog.py
-	    cd ~
+            # # run zeiterfassung start
+	    # cd ~/shared/arbeitszeit/`hostname`
+	    # echo "arrived **" |~/shared/code/python/timelog/timelog.py
+	    # cd ~
 
             screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
 
-            # run zeiterfassung end
-	    cd ~/shared/arbeitszeit/`hostname`
-	    echo "work" |~/shared/code/python/timelog/timelog.py
+            # # run zeiterfassung end
+	    # cd ~/shared/arbeitszeit/`hostname`
+	    # echo "work" |~/shared/code/python/timelog/timelog.py
 
             mount |grep -q ~/.encfs && fusermount -u -z ~/.encfs
 
-            kdestroy
-            rm /tmp/krb5cc_*
+            which kdestroy >/dev/null && kdestroy -q &>/dev/null
 
-            unison -silent -terse
+            unison -silent -terse &
             disown
-            #exit 0
+            exit 0
         else
             screen -a -A -d -RR -S local
         fi

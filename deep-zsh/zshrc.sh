@@ -28,8 +28,6 @@ compinit
 
 HISTFILE=$HOME/.zsh/history
 
-watch=(notme)
-setopt notify nohup
 setopt hist_ignore_space hist_ignore_dups hist_reduce_blanks
 setopt hist_verify appendhistory sharehistory
 setopt EXTENDEDHISTORY
@@ -70,9 +68,8 @@ SSH_ASKPASS=`which ssh-askpass`
 
 if [ -d $HOME/.zsh ]
 then
-    for f in $HOME/.zsh/completion $HOME/.zsh/zshuser-$USER $HOME/.zsh/zshlocal
+    for f in $HOME/.zsh/completion $HOME/.zsh/zshuser-${USER}.sh $HOME/.zsh/zshlocal.sh
     do
         [ -e $f ] && source $f
     done
 fi
-
