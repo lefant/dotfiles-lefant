@@ -132,6 +132,8 @@
 (add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
 
 
+
+(setq initial-buffer-choice "~/shared/gtd.org")
+
+
 (load "local.el")
-
-

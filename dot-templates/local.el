@@ -2,9 +2,8 @@
 
 ;;(load "w3m-conf.el")
 
-(setq browse-url-browser-function 'browse-url-firefox)
-(setq browse-url-firefox-new-window-flag t)
-(setq browse-url-firefox-new-window-is-tab t)
+(setq browse-url-browser-function (quote browse-url-generic))
+(setq browse-url-generic-program "chromium-browser")
 
 (add-to-list 'load-path "/home/lefant/git/git-emacs")
 ;;(require 'git-emacs)
