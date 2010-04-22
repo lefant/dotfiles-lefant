@@ -105,7 +105,8 @@ macro pager \Cx "s=zz_`date +'%Y-%m'`\n"
 
 
 
-set query_command="lbdbq '%s'"
+#set query_command="lbdbq '%s'"
+set query_command="~/.goobook/bin/goobook -c ~/.goobookrc query %s"
 
 
 macro index S ":toggle pgp_verify_sig\n"
