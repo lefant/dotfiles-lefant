@@ -1,3 +1,6 @@
+
+. ~/.common.sh
+
 export EMAIL="e@lefant.net"
 export DEBEMAIL="Fabian Linzberger <e@lefant.net>"
 export DARCS_EMAIL="Fabian Linzberger <e@lefant.net>"
