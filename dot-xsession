@@ -26,9 +26,8 @@ case `hostname` in
         gnome-session
         ;;
     mu)
-        # sh -c "sleep 5 && sudo nm-applet" &
-        STD_APPS="${STD_APPS}"
-        exec $WINDOW_MANAGER
+        #STD_APPS="${STD_APPS} nm-applet xfce4-panel"
+        gnome-session
         ;;
     *)
         echo "new host here"
