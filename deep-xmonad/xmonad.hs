@@ -1,41 +1,65 @@
 import XMonad
-import XMonad.Config.Gnome (gnomeConfig)
+import XMonad.Config.Gnome (gnomeConfig, gnomeRun)
 import XMonad.Config.Desktop (desktopLayoutModifiers)
 import XMonad.Layout.NoBorders (smartBorders)
+
+-- import XMonad.Hooks.ManageDocks (ToggleStruts(..))
+-- import XMonad.Util.EZConfig
 
 import System.Posix.Unistd (getSystemID, nodeName)
 
 
 main = do
      host <- fmap nodeName getSystemID
-     xmonad $ gnomeConfig {
-         terminal = "rxvt-unicode"
-       , workspaces = map show [1 .. 9]
-       , layoutHook = smartBorders $ desktopLayoutModifiers layout
-       , manageHook =
-           composeAll
-           [ manageHook gnomeConfig
-           , className =? "MPlayer" --> doFloat
-           , className  =? "URxvt" --> doShift "1"
-           , className  =? "Thunderbird-bin" --> doShift "3"
-           , className  =? "Icedove-bin" --> doShift "3"
-           , className  =? "Firefox" --> doShift "4"
-           , className  =? "Iceweasel" --> doShift "4"
-           , className  =? "Google-chrome" --> doShift "4"
-           , className  =? "Chromium-browser" --> doShift "4"
-           , className  =? "Opera" --> doShift "4"
-           , className  =? "Pidgin" --> doShift "5"
-           , className  =? "xfce4-panel" --> doIgnore
-           , resource  =? "desktop_window" --> doIgnore
-           , resource  =? "kdesktop"       --> doIgnore
-           ]
+     let myGnomeConfig = gnomeConfig {
+                           terminal = "rxvt-unicode"
+                         , workspaces = map show [1 .. 9]
+                         , layoutHook = smartBorders $ desktopLayoutModifiers layout
+                         , manageHook =
+                             composeAll
+                             [ manageHook gnomeConfig
+                             , className =? "MPlayer" --> doFloat
+                             , className  =? "URxvt" --> doShift "1"
+                             , className  =? "Thunderbird-bin" --> doShift "3"
+                             , className  =? "Icedove-bin" --> doShift "3"
+                             , className  =? "Firefox" --> doShift "4"
+                             , className  =? "Iceweasel" --> doShift "4"
+                             , className  =? "Google-chrome" --> doShift "4"
+                             , className  =? "Chromium-browser" --> doShift "4"
+                             , className  =? "Opera" --> doShift "4"
+                             , className  =? "Pidgin" --> doShift "5"
+                             , className  =? "xfce4-panel" --> doIgnore
+                             , resource  =? "desktop_window" --> doIgnore
+                             , resource  =? "kdesktop"       --> doIgnore
+                             ]
 
-       -- modMask dependent on host
-       , modMask =
-           (if (host == "mu" || host == "end")
-            then mod1Mask
-            else mod4Mask)
-       }
+                         -- modMask dependent on host
+                         , modMask =
+                             (if (host == "mu" || host == "end")
+                              then mod1Mask .|. controlMask
+                              else mod4Mask)
+                         }
+
+     xmonad myGnomeConfig
+
+     -- let myGnomeConfig' = removeKeysP myGnomeConfig
+     --                      [ "M-b"
+     --                      , "M-p"
+     --                      , "M-q"
+     --                      , "M-w"
+     --                      , "M-<Space>"
+     --                      ]
+     -- let myGnomeConfig'' = additionalKeysP myGnomeConfig'
+     --                       [ ("M-C-q",
+     --                          broadcastMessage ReleaseResources >> restart "xmonad" True)
+     --                       , ("M-C-p", gnomeRun)
+     --                       , ("M-C-b", sendMessage ToggleStruts)
+     --                       ]
+     -- xmonad myGnomeConfig''
+
+
+
+
 
 layout = Full ||| tiled ||| Mirror tiled
     where
