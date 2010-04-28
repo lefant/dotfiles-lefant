@@ -99,9 +99,11 @@ alternative_order text/enriched text/plain text/html
 # Last, but not least, get mutt to display its version on startup.
 push <show-version>
 
-macro index \Cx "s=zz_`date +'%Y-%m'`\n"
-macro pager \Cx "s=zz_`date +'%Y-%m'`\n"
+macro index,pager \Cx "s=zz_`date +'%Y-%m'`\n"
 
+
+macro index,pager \cb "<pipe-message> urlscan<Enter>" "call urlscan to extract URLs out of a message"
+macro attach,compose \cb "<pipe-entry> urlscan<Enter>" "call urlscan to extract URLs out of a message"
 
 
 
