@@ -1,5 +1,8 @@
 (server-start)
 
+(require 'edit-server)
+(edit-server-start)
+
 ;;(load "w3m-conf.el")
 
 (setq browse-url-browser-function (quote browse-url-generic))
