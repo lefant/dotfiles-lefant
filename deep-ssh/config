@@ -1,4 +1,5 @@
 host *
+     User lefant
      HashKnownHosts no
      NoHostAuthenticationForLocalhost yes
      ControlMaster auto
@@ -15,7 +16,7 @@ host *.local
      CheckHostIP no
 
 host *.42.lefant.net
-     AddressFamily inet6
+     #AddressFamily inet6
 
 host hip* hop* hep* al* wave* skib* mixer* tune* geri* gifur*
      user root
@@ -26,3 +27,5 @@ host vpn-* bar-*
 Host alioth.debian.org svn.debian.org git.debian.org bzr.debian.org hg.debian.org darcs.debian.org arch.debian.org
     User lefant-guest
 
+host hecht.hq.kred
+     user fabian
