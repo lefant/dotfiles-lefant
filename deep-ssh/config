@@ -1,3 +1,9 @@
+host hecht
+     user fabian
+
+Host alioth.debian.org svn.debian.org git.debian.org bzr.debian.org hg.debian.org darcs.debian.org arch.debian.org
+    User lefant-guest
+
 host *
      User lefant
      HashKnownHosts no
@@ -23,9 +29,3 @@ host hip* hop* hep* al* wave* skib* mixer* tune* geri* gifur*
 
 host vpn-* bar-*
      user root
-
-Host alioth.debian.org svn.debian.org git.debian.org bzr.debian.org hg.debian.org darcs.debian.org arch.debian.org
-    User lefant-guest
-
-host hecht.hq.kred
-     user fabian
