@@ -24,8 +24,8 @@ footer = "\n"
 localrepository = LocalLefant
 remoterepository = GandiE
 
-presynchook = imapfilter
-postsynchook = /home/lefant/.bin/handle_email_hook.sh
+#presynchook = imapfilter
+#postsynchook = /home/lefant/.bin/handle_email_hook.sh
 
 
 #[Account EGandi]
