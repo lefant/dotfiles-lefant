@@ -133,7 +133,7 @@
 
 
 
-(setq initial-buffer-choice "~/shared/gtd.org")
+(setq initial-buffer-choice "~/Dropbox/dot-state/gtd.org")
 
 
 (load "local.el")
