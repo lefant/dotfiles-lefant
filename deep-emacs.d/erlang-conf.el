@@ -12,3 +12,5 @@
 
 (require 'distel)
 (distel-setup)
+
+(setq inferior-erlang-machine-options '("-env" "ERL_LIBS" "/home/fabian/.kred-current/lib"))
