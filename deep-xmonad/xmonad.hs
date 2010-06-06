@@ -2,6 +2,8 @@ import XMonad
 import XMonad.Config.Gnome (gnomeConfig, gnomeRun)
 import XMonad.Config.Desktop (desktopLayoutModifiers)
 import XMonad.Layout.NoBorders (smartBorders)
+import XMonad.Hooks.SetWMName (setWMName)
+import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
 
 -- import XMonad.Hooks.ManageDocks (ToggleStruts(..))
 -- import XMonad.Util.EZConfig
@@ -15,6 +17,7 @@ main = do
                            terminal = "rxvt-unicode"
                          , workspaces = map show [1 .. 9]
                          , layoutHook = smartBorders $ desktopLayoutModifiers layout
+                         , startupHook = ewmhDesktopsStartup >> setWMName "LG3D"
                          , manageHook =
                              composeAll
                              [ manageHook gnomeConfig
