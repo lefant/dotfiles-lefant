@@ -4,6 +4,8 @@ import XMonad.Config.Desktop (desktopLayoutModifiers)
 import XMonad.Layout.NoBorders (smartBorders)
 import XMonad.Hooks.SetWMName (setWMName)
 import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
+import XMonad.Layout.Spiral (spiral)
+import XMonad.Layout.ThreeColumns (ThreeCol(..))
 
 -- import XMonad.Hooks.ManageDocks (ToggleStruts(..))
 -- import XMonad.Util.EZConfig
@@ -31,6 +33,8 @@ main = do
                              , className  =? "Chromium-browser" --> doShift "4"
                              , className  =? "Opera" --> doShift "4"
                              , className  =? "Pidgin" --> doShift "5"
+                             -- stop mnesia:tv from resizing like crazy
+                             , className  =? "Toplevel" --> doFloat
                              , className  =? "xfce4-panel" --> doIgnore
                              , resource  =? "desktop_window" --> doIgnore
                              , resource  =? "kdesktop"       --> doIgnore
@@ -63,13 +67,19 @@ main = do
 
 
 
-
-layout = Full ||| tiled ||| Mirror tiled
+layout = tiled ||| Full ||| spiral (6/7) ||| ThreeCol 1 (3/100) (1/2) ||| Mirror tiled
     where
      tiled = Tall nmaster delta ratio
      nmaster = 1
      ratio = 1/2
      delta = 3/100
+
+-- layout = Full ||| tiled ||| Mirror tiled
+--     where
+--      tiled = Tall nmaster delta ratio
+--      nmaster = 1
+--      ratio = 1/2
+--      delta = 3/100
 
     -- --
     -- -- MOD-{a,o,e}, Switch to physical/Xinerama screens 1, 2, or 3

@@ -53,7 +53,7 @@ export COLORTERM=yes
 export LESSCHARSET=UTF-8
 export LESS='-iFRSX'
 
-export GREP_OPTIONS="--color=auto --ignore-case"
+export GREP_OPTIONS="--color=auto --ignore-case --exclude-dir=.svn --exclude-dir=.git"
 
 alias ls='ls --color=auto --classify'
 
