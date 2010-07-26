@@ -1,6 +1,7 @@
 [general]
 metadata = ~/.offlineimap
-accounts = GandiE
+#accounts = GandiE
+accounts = GmailLinzberger
 maxsyncaccounts = 5
 ignore-readonly = no
 
@@ -18,6 +19,10 @@ peritem = =%(foldername)s
 sep = ' '
 footer = "\n"
 
+
+[Account GmailLinzberger]
+localrepository = LocalLinzberger
+remoterepository = GmailLinzberger
 
 
 [Account GandiE]
@@ -60,3 +65,15 @@ remoteuser = e@lefant.net
 remotepassfile = ~/.secret/lefant@lefant.net_mail.gandi.net
 
 folderfilter = lambda foldername: foldername not in ['INBOX']
+
+
+
+[Repository LocalLinzberger]
+type = Maildir
+localfolders = ~/MaildirGmailLinzberger
+
+[Repository GmailLinzberger]
+type = Gmail
+remoteuser = linzberger@gmail.com
+remotepassfile = ~/.secret/linzberger@gmail.com
+
