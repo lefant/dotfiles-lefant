@@ -1,8 +1,9 @@
 set mbox_type=Maildir
-set folder=$HOME/MaildirGandiLefant
+#set folder=$HOME/MaildirGandiLefant
+set folder=$HOME/MaildirGmailLinzberger
 source $HOME/.muttrc.mailboxes
 
-set spoolfile=+/e
+set spoolfile=+/INBOX
 
 set from="Fabian Linzberger <e@lefant.net>"
 set reverse_name=yes
@@ -26,24 +27,18 @@ set folder_format="%2C %t %8s %d %N %f"
 #set timeout=10
 #set mail_check=5
 
-
-set copy                                  # Keep copies of outgoing mail...
-set record=+Sent
+set mbox=+INBOX
+set copy
+set record=+[Google\ Mail].Sent
+set postponed=+[Google\ Mail].Drafts
 set noconfirmappend
 set delete=yes
 set edit_headers
 
-
-
-
-set mbox=+e
-set copy                                  # Keep copies of outgoing mail...
-set record=+Sent
-set postponed=+Drafts                     # Where postponed messages live.
-
-set postpone=ask-no                       # Ask about postponing.
+set postpone=ask-no
 set delete=yes
-set print=ask-yes                         # Ask before printing.
+set print=ask-yes
+
 
 set hidden_host                           # Hide host details.
 set nomove                                # Hold messages in $MAIL.
@@ -63,7 +58,10 @@ set nosmart_wrap                          # Don't want smart wrapping.
 set mime_forward                          # Forward message as MIME attachments.
 set pager_context=3                       # Display 3 lines of context in pager.
 set nostrict_threads                      # Lets have some fuzzy threading.
-set sendmail_wait=-1                      # Don't wait around for sendmail.
+
+set sendmail_wait=0
+set sendmail="ssh sh.lefant.net /usr/sbin/sendmail -oem -oi"
+
 set fcc_clear                             # Keep fcc's clear of signatues and encryption.
 set nopipe_decode                         # Don't decode messages when piping.
 					  # Print via a2ps
