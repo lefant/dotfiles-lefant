@@ -33,11 +33,11 @@ main = do
                              , className  =? "URxvt" --> doShift "1"
                              , className  =? "Thunderbird-bin" --> doShift "3"
                              , className  =? "Icedove-bin" --> doShift "3"
-                             , className  =? "Firefox" --> doShift "4"
-                             , className  =? "Iceweasel" --> doShift "4"
+                             , className  =? "Firefox" --> doShift "3"
+                             , className  =? "Iceweasel" --> doShift "3"
                              , className  =? "Google-chrome" --> doShift "4"
                              , className  =? "Chromium-browser" --> doShift "4"
-                             , className  =? "Opera" --> doShift "4"
+                             , className  =? "Opera" --> doShift "3"
                              , className  =? "Pidgin" --> doShift "5"
                              -- stop mnesia:tv from resizing like crazy
                              , className  =? "Toplevel" --> doFloat
