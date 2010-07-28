@@ -57,6 +57,9 @@ export GREP_OPTIONS="--color=auto --ignore-case --exclude-dir=.svn --exclude-dir
 
 alias ls='ls --color=auto --classify'
 
+alias greperl="grep --color=auto --ignore-case --exclude='.*' --include='*rl' --include='*inc' --exclude='.*' -r"
+
+
 
 export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
 
