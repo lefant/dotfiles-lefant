@@ -91,7 +91,7 @@
 ;(load "~/.elisp/darcsum/darcsum.el")
 ;(load "~/.elisp/darcs-mode/darcs.el")
 
-(load "color-conf.el")
+;(load "color-conf.el")
 ;(load "haskell-conf.el")
 
 (require 'ido)
