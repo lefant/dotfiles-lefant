@@ -125,7 +125,7 @@ case $STY in
             esac
 
             unsetopt notify
-            unison -silent -terse &>/dev/null
+            #unison -silent -terse &>/dev/null
 
             if touch /dev/fuse &>/dev/null
             then
@@ -161,7 +161,7 @@ case $STY in
 
             which kdestroy >/dev/null && kdestroy -q &>/dev/null
 
-            unison -silent -terse &
+            #unison -silent -terse &
             disown
             exit 0
         else
