@@ -70,6 +70,7 @@
 		("\\.org$" 	. org-mode)
 		("\\.tt$" 	. tt-mode)
 		("\\.tt2$" 	. tt-mode)
+		("\\.escript$" 	. erlang-mode)
                 ("/mutt"        . message-mode))
 	      auto-mode-alist))
 
