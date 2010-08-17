@@ -1,1 +1,4 @@
-code:add_pathz("/home/lefant/shared/code/erlang/distel/ebin").
+code:add_pathz("/home/fabian/svn/kred/lib").
+
+code:add_pathz("/home/fabian/git/distel/ebin").
+

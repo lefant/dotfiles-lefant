@@ -1,25 +1,12 @@
-host hecht
-     user fabian
-
 host localhost
-     user fabian
      StrictHostKeyChecking no
      UserKnownHostsFile /dev/null
 
-Host alioth.debian.org svn.debian.org git.debian.org bzr.debian.org hg.debian.org darcs.debian.org arch.debian.org
-     User lefant-guest
+host alioth.debian.org svn.debian.org git.debian.org bzr.debian.org hg.debian.org darcs.debian.org arch.debian.org
+     user lefant-guest
 
 host *.hq.kred *.internal.machines
      user fabian
-
-host *
-     User lefant
-     HashKnownHosts no
-     NoHostAuthenticationForLocalhost yes
-     ControlMaster auto
-     ControlPath ~/.ssh/sock/%r@%h:%p
-     VisualHostKey yes
-     #ProxyCommand monkeysphere ssh-proxycommand %h %p
 
 host *.local
      AddressFamily inet
@@ -27,9 +14,19 @@ host *.local
 
 host *.42.lefant.net
      #AddressFamily inet6
+     user lefant
+
+host *.lefant.net muybridge.*
+     user lefant
 
 host hip* hop* hep* al* wave* skib* mixer* tune* geri* gifur*
      user root
 
-host vpn-* bar-*
-     user root
+
+host *
+     HashKnownHosts no
+     NoHostAuthenticationForLocalhost yes
+     ControlMaster auto
+     ControlPath ~/.ssh/sock/%r@%h:%p
+     VisualHostKey yes
+     #ProxyCommand monkeysphere ssh-proxycommand %h %p
