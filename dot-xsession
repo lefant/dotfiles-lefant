@@ -12,7 +12,7 @@ BROWSER=$(find_best chromium-browser google-chrome firefox opera x-www-browser)
 SCREENSAVER=$(find_best gnome-screensaver xscreensaver)
 WINDOW_MANAGER=$(find_best xmonad ratpoison fluxbox openbox blackbox wmaker x-window-manager)
 
-STD_APPS="urxvt emacs $BROWSER $SCREENSAVER"
+STD_APPS="urxvt $BROWSER $SCREENSAVER"
 
 
 # host dependent wm/session and startup things
