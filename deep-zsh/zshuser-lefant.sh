@@ -27,7 +27,7 @@ done
 find_best_editor () {
     if [ -e /tmp/emacs`id -u`/server -o -e /tmp/esrv`id -u`-`hostname` ]
     then
-        export EDITOR="emacsclient -c"
+        export EDITOR="emacsclient -c -t"
     else
         export EDITOR=$(find_best mg zile nano vim)
     fi
