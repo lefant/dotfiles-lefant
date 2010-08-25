@@ -7,10 +7,11 @@
 (require 'erlang-start)
 
 ;; This is needed for Distel setup
-(let ((distel-dir "/home/lefant/git/distel/elisp"))
+(let ((distel-dir "~/.elisp/distel/"))
   (unless (member distel-dir load-path)
     ;; Add distel-dir to the end of load-path
     (setq load-path (append load-path (list distel-dir)))))
+
 
 (require 'distel)
 (distel-setup)
