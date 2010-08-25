@@ -2,7 +2,7 @@
 
 if [ $# -eq 0 ]
 then
-    dotfiledir="$HOME/git/dotfiles-lefant/"
+    dotfiledir="$HOME/git/lefant/dotfiles-lefant/"
 else
     dotfiledir=$1
 fi
