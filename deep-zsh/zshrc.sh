@@ -5,7 +5,7 @@ stty -ixon -ixoff
 
 autoload -U promptinit
 promptinit
-prompt suse
+setopt prompt_subst
 
 #autoload -U checkmail            # needed for my prompt
 autoload -U colors && colors     # make ${f,b}g{,_{,no_}bold} available

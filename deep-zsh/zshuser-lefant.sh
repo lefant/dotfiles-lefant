@@ -83,13 +83,25 @@ maybe_run_keychain () {
 }
 
 
+chpwd() {
+    export __CURRENT_GIT_BRANCH="$(parse_git_branch)"
+}
+PS1='%n@%m:%~/ $(echo $__CURRENT_GIT_BRANCH)$ '
+
+
 # case dispatch on running local screen, meta screen or no screen at all (yet)
 case $STY in
     *.local)
         preexec () {
-            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
+            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
+
+            case "$(history $HISTCMD)" in
+                *git*)
+                    export __CURRENT_GIT_BRANCH="$(parse_git_branch)"
+                    ;;
+            esac
 
             fix_env
         }
@@ -100,7 +112,7 @@ case $STY in
         ;;
     *.meta)
         preexec () {
-            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}       # dont't use hostname
+            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}
             CMD=`echo $CMD|cut -f 1 -d "."`
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
