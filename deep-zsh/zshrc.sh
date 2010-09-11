@@ -24,6 +24,7 @@ zmodload -ap zsh/mapfile mapfile
 
 autoload -U compinit
 compinit
+setopt complete_in_word
 
 
 HISTFILE=$HOME/.zsh/history
