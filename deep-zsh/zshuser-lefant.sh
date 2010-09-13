@@ -6,9 +6,9 @@ export DEBEMAIL="Fabian Linzberger <e@lefant.net>"
 export DARCS_EMAIL="Fabian Linzberger <e@lefant.net>"
 export REPORTBUGEMAIL="Fabian Linzberger <e@lefant.net>"
 export GIT_AUTHOR_NAME="Fabian Linzberger"
-export GIT_AUTHOR_EMAIL="e@lefant.net"
+#export GIT_AUTHOR_EMAIL="e@lefant.net"
 export GIT_COMMITTER_NAME="Fabian Linzberger"
-export GIT_COMMITTER_EMAIL="e@lefant.net"
+#export GIT_COMMITTER_EMAIL="e@lefant.net"
 export GPGKEY=C02860F0
 
 alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && sudo ./Build install"
