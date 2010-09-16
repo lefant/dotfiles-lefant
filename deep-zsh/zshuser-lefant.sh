@@ -97,16 +97,11 @@ case $STY in
             echo -ne "\ek$CMD\e\\"
             SCREENTITLE=$'%{\ekzsh\e\\%}'
 
-            case "$(history $HISTCMD)" in
-                *git*)
-                    export __CURRENT_GIT_BRANCH="$(parse_git_branch)"
-                    ;;
-            esac
-
             fix_env
         }
         precmd () {
             RPROMPT="%(?..:()% ${SCREENTITLE}"
+            __CURRENT_GIT_BRANCH="$(parse_git_branch)"
         }
         setopt notify
         ;;
