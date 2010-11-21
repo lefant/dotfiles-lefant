@@ -5,6 +5,7 @@ then
     case $1 in
         dock)
             xrandr --auto --output LVDS1 --off
+            xrandr -s 0
             rm ~/.xmonad/xmonad.hs
             ln -s ~/.xmonad/xmonad-mu-diamond.hs ~/.xmonad/xmonad.hs
             xmonad --recompile
