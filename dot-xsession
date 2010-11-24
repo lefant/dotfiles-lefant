@@ -27,6 +27,7 @@ case `hostname` in
         ;;
     hecht)
         #STD_APPS="${STD_APPS} nm-applet xfce4-panel"
+	~/.bin/xplanet.sh &
         gnome-session
         ;;
     mu)
