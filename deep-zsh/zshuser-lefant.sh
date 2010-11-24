@@ -170,7 +170,7 @@ case $STY in
 
             #unison -silent -terse &
             disown
-            exit 0
+            #exit 0
         else
             screen -a -A -d -RR -S local
         fi
