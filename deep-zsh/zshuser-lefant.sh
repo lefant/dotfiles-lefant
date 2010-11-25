@@ -43,6 +43,7 @@ maybe_krb5ccnamesh () {
     elif [ `klist --test &>/dev/null ; echo $?` = 1 -a -f $krb5ccnamesh_file ]
     then
         source $krb5ccnamesh_file
+        [ -f /usr/bin/aklog ] && aklog
         if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]
         then
             rm $krb5ccnamesh_file
