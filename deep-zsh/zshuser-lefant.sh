@@ -17,7 +17,7 @@ alias cpan_modulebuild_style_install="perl Build.PL; ./Build; ./Build test && su
 [[ ! -e ~/.zsh/zshlocal.sh ]] && cp -v ~/.templates/zshlocal.sh ~/.zsh/zshlocal.sh
 [[ -e ~/.emacs.d ]] && [[ ! -e ~/.emacs.d/local.el ]] && cp -v ~/.templates/local.el ~/.emacs.d/local.el
 
-for dir in ~/.ssh/sock ~/.encfs
+for dir in ~/.ssh/sock ~/.encfs ~/.maybe_krb5ccnamesh.d
 do
     [[ ! -d $dir ]] && mkdir -p $dir
 done
@@ -36,15 +36,16 @@ find_best_editor () {
 }
 
 maybe_krb5ccnamesh () {
+    krb5ccnamesh_file=~/.maybe_krb5ccnamesh.d/${HOST}.sh
     if [ `klist --test &>/dev/null ; echo $?` = 0 -a ! -z $KRB5CCNAME ]
     then
-        echo "export KRB5CCNAME=$KRB5CCNAME" >$HOME/.krb5ccname.sh
-    elif [ `klist --test &>/dev/null ; echo $?` = 1 -a -f $HOME/.krb5ccname.sh ]
+        echo "export KRB5CCNAME=$KRB5CCNAME" >$krb5ccnamesh_file
+    elif [ `klist --test &>/dev/null ; echo $?` = 1 -a -f $krb5ccnamesh_file ]
     then
-        source $HOME/.krb5ccname.sh
+        source $krb5ccnamesh_file
         if [ ! `klist --test &>/dev/null ; echo $?` = 0 ]
         then
-            rm $HOME/.krb5ccname.sh
+            rm $krb5ccnamesh_file
             unset KRB5CCNAME
         fi
     fi
