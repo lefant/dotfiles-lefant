@@ -129,6 +129,16 @@
 (add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
 
 
+(defun my-whitespace-setup()
+  (require 'whitespace)
+  (setq whitespace-style (list 'tabs 'trailing 'lines-tail 'empty)
+        whitespace-line-column 79)
+  (global-whitespace-mode t))
+
+(if (locate-library "whitespace")
+    (my-whitespace-setup))
+
+
 
 (setq initial-buffer-choice "~/Dropbox/dot-state/gtd.org")
 
@@ -138,4 +148,3 @@
 (split-window-horizontally 82)
 
 (load "local.el")
-
