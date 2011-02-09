@@ -30,3 +30,4 @@ host *
      ControlPath ~/.ssh/sock/%r@%h:%p
      VisualHostKey yes
      #ProxyCommand monkeysphere ssh-proxycommand %h %p
+     #ServerAliveInterval 900
