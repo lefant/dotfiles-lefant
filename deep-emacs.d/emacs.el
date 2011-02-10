@@ -131,9 +131,11 @@
 
 (defun my-whitespace-setup()
   (require 'whitespace)
-  (setq whitespace-style (list 'tabs 'trailing 'lines-tail 'empty)
+  (setq whitespace-style (list 'tabs 'trailing 'lines-tail)
         whitespace-line-column 79)
   (global-whitespace-mode t))
+
+
 
 (if (locate-library "whitespace")
     (my-whitespace-setup))
