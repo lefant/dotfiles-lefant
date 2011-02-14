@@ -117,6 +117,13 @@
 ;;(load "erlang-conf.el")
 
 
+(setq safe-local-variable-values
+      '((erlang-indent-level . 2)
+       (erlang-indent-level . 4)
+       (show-trailing-whitespace . t)
+       (set-fill-column . 79)
+       (highlight-beyond-fill-column . t)
+       (allout-layout . t)))
 
 
 (defun pretty-lambdas ()
