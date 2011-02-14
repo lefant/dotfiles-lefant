@@ -2,3 +2,8 @@
         ui = auto
 [core]
         excludesfile = "~/.gitignore"
+[merge]
+        tool = kdiff3
+[push]
+        # instead of pushing all branches with git push, you only push the current one.
+        default = current
