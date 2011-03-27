@@ -71,14 +71,19 @@ main = do
      -- xmonad myGnomeConfig''
 
 
-
-
-layout = tiled ||| Full ||| spiral (6/7) ||| ThreeKnut 1 (1/3) (3/100) (1/2) ||| Mirror tiled
+layout = tiled ||| Full
     where
      tiled = Tall nmaster delta ratio
      nmaster = 1
      ratio = 1/2
      delta = 3/100
+
+-- layout = tiled ||| Full ||| spiral (6/7) ||| ThreeKnut 1 (1/3) (3/100) (1/2) ||| Mirror tiled
+--     where
+--      tiled = Tall nmaster delta ratio
+--      nmaster = 1
+--      ratio = 1/2
+--      delta = 3/100
 
 -- layout = Full ||| tiled ||| Mirror tiled
 --     where
