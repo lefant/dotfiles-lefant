@@ -9,7 +9,9 @@ nethack on
 bell_msg	'Bell in %n'
 altscreen off
 
-termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+#termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+term screen-256color-bce
+
 
 defscrollback         1000
 shell                 zsh
@@ -21,4 +23,3 @@ sorendition 10 99 # default!
 
 
 caption always "%{w$SCREEN_CAPTION_COLOR}%?%-Lw%?%{kW}%n*%f %t%?(%u)%?%{w$SCREEN_CAPTION_COLOR}%?%+Lw"
-

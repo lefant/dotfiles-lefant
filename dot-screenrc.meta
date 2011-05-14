@@ -9,7 +9,8 @@ startup_message       off
 vbell                 off
 bell_msg	'Bell in %n'
 
-termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+#termcapinfo xterm*|linux*|rxvt*|Eterm* OP
+term screen-256color-bce
 
 defscrollback         1000
 #hardcopydir           ~/.screen
