@@ -64,6 +64,7 @@ alias greperl="grep --color=auto --ignore-case --exclude='.*' --include='*rl' --
 unset TERMCAP
 
 export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
+export TMUX_COLOUR="colour$((0x$(hostname |md5sum |head -c 2)))"
 
 
 SSH_ASKPASS=`which ssh-askpass`
