@@ -7,3 +7,5 @@
 [push]
         # instead of pushing all branches with git push, you only push the current one.
         default = current
+[url "https://github.com/"]
+        insteadOf = "gh:"
