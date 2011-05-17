@@ -11,3 +11,6 @@ bind-key C-l last-window
 bind-key C-n next-window
 bind-key C-p previous-window
 bind-key C-r refresh-client
+
+set-option status-bg white
+
