@@ -171,7 +171,7 @@ case $STY in
             which kdestroy >/dev/null && kdestroy -q &>/dev/null
 
             #unison -silent -terse &
-            disown
+            #disown
             #exit 0
         else
             screen -a -A -d -RR -S local
