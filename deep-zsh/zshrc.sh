@@ -60,7 +60,8 @@ alias ls='ls --color=auto --classify'
 
 alias greperl="grep --color=auto --ignore-case --exclude='.*' --include='*rl' --include='*inc' --exclude='.*' -r"
 
-
+# someone said this helps with terminal weirdness
+unset TERMCAP
 
 export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
 
