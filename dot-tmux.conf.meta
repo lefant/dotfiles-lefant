@@ -1,7 +1,7 @@
-set-option -g prefix C-a
+set-option -g prefix C-o
 unbind-key C-b
-bind-key C-a send-prefix
-bind-key a send-prefix
+bind-key C-o send-prefix
+bind-key o send-prefix
 
 # screen compatibility keybindings
 # I am just too used to stay on the ctrl key...
