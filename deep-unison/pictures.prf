@@ -1,0 +1,19 @@
+root = /home/lefant
+root = ssh://lefant@icebox.h.lefant.net//home/lefant/unison-pictures
+
+path = .shotwell
+path = Pictures
+path = Photos
+
+
+logfile = /home/lefant/.unison/pictures.log
+
+auto = true
+batch = true
+#debug = all
+
+sshargs = -q -o VisualHostKey=no -C
+retry = 1
+
+# nice feature for future versions: use rsync for files >1 MB
+#copythreshold = 1000
