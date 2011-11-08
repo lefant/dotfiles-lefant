@@ -9,6 +9,7 @@ import XMonad.Hooks.EwmhDesktops (ewmhDesktopsStartup)
 import XMonad.Layout.Spiral (spiral)
 
 import qualified XMonad.StackSet as W
+import qualified Data.Map as M
 import Data.Ratio
 import Control.Monad
 
@@ -26,6 +27,7 @@ main = do
                          , workspaces = map show [1 .. 9]
                          , layoutHook = smartBorders $ desktopLayoutModifiers layout
                          , startupHook = ewmhDesktopsStartup >> setWMName "LG3D"
+                         , keys = myKeys
                          , manageHook =
                              composeAll
                              [ manageHook gnomeConfig
@@ -77,6 +79,9 @@ layout = tiled ||| Full
      nmaster = 1
      ratio = 1/2
      delta = 3/100
+
+myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $ 
+    [ ((modMask, xK_l), spawn "xlock") ]
 
 -- layout = tiled ||| Full ||| spiral (6/7) ||| ThreeKnut 1 (1/3) (3/100) (1/2) ||| Mirror tiled
 --     where
