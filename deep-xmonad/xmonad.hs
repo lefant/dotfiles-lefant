@@ -27,7 +27,7 @@ main = do
                          , workspaces = map show [1 .. 9]
                          , layoutHook = smartBorders $ desktopLayoutModifiers layout
                          , startupHook = ewmhDesktopsStartup >> setWMName "LG3D"
-                         , keys = myKeys
+                         , keys = \c -> myKeys c `M.union` keys gnomeConfig c
                          , manageHook =
                              composeAll
                              [ manageHook gnomeConfig
@@ -47,7 +47,6 @@ main = do
                              , resource  =? "desktop_window" --> doIgnore
                              , resource  =? "kdesktop"       --> doIgnore
                              ]
-
                          -- modMask dependent on host
                          , modMask =
                              (if (host == "mu" || host == "end")
