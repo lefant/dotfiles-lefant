@@ -80,7 +80,7 @@ layout = tiled ||| Full
      delta = 3/100
 
 myKeys conf@(XConfig {XMonad.modMask = modMask}) = M.fromList $ 
-    [ ((modMask, xK_l), spawn "xlock") ]
+    [ ((modMask .|. shiftMask, xK_l), spawn "xlock") ]
 
 -- layout = tiled ||| Full ||| spiral (6/7) ||| ThreeKnut 1 (1/3) (3/100) (1/2) ||| Mirror tiled
 --     where
