@@ -43,7 +43,7 @@ case `hostname` in
         gnome-terminal &
 	gnome-screensaver &
 	gnome-sound-applet &
-	sh -c "sleep 2 && /home/fabian/.bin/dropbox.py start" &
+	sh -c "sleep 2 && /home/lefant/.bin/dropbox.py start" &
 	xmonad
         ;;
     mu)
