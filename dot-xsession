@@ -9,10 +9,9 @@ xset b off
 
 
 BROWSER=$(find_best chromium-browser google-chrome firefox opera x-www-browser)
-SCREENSAVER=$(find_best gnome-screensaver xscreensaver)
 WINDOW_MANAGER=$(find_best xmonad ratpoison fluxbox openbox blackbox wmaker x-window-manager)
 
-STD_APPS="urxvt $BROWSER $SCREENSAVER"
+STD_APPS="urxvt $BROWSER"
 
 
 # host dependent wm/session and startup things
@@ -31,7 +30,6 @@ case `hostname` in
         chromium-browser &
         gnome-terminal &
 	~/.bin/xplanet.sh &
-	gnome-screensaver &
 	gnome-sound-applet &
 	sh -c "sleep 2 && /home/fabian/.bin/dropbox.py start" &
 	xmonad
@@ -41,7 +39,6 @@ case `hostname` in
         xfce4-panel &
         chromium-browser &
         gnome-terminal &
-	gnome-screensaver &
 	gnome-sound-applet &
 	sh -c "sleep 2 && /home/lefant/.bin/dropbox.py start" &
 	xmonad
