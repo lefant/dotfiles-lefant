@@ -41,7 +41,6 @@ case `hostname` in
         xfce4-panel &
         chromium-browser &
         gnome-terminal &
-	gnome-screensaver &
 	gnome-sound-applet &
 	sh -c "sleep 2 && /home/lefant/.bin/dropbox.py start" &
 	xmonad
