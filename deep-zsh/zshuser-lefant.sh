@@ -92,32 +92,21 @@ PS1='%n@%m:%~/ $(echo $__CURRENT_GIT_BRANCH)$ '
 
 
 # case dispatch on running local screen, meta screen or no screen at all (yet)
-case $STY in
-    *.local)
+case $TMUX in
+    *default*)
         preexec () {
-            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}
-            echo -ne "\ek$CMD\e\\"
-            SCREENTITLE=$'%{\ekzsh\e\\%}'
-
             fix_env
         }
         precmd () {
-            RPROMPT="%(?..:()% ${SCREENTITLE}"
             __CURRENT_GIT_BRANCH="$(parse_git_branch)"
         }
         setopt notify
         ;;
-    *.meta)
+    *meta*)
         preexec () {
-            local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}
-            CMD=`echo $CMD|cut -f 1 -d "."`
-            echo -ne "\ek$CMD\e\\"
-            SCREENTITLE=$'%{\ekzsh\e\\%}'
-
             fix_env
         }
         precmd () {
-            RPROMPT="%(?..:()% ${SCREENTITLE}"
         }
         ;;
     *)
@@ -160,7 +149,7 @@ case $STY in
 	    # echo "arrived **" |~/shared/code/python/timelog/timelog.py
 	    # cd ~
 
-            screen -a -A -d -RR -S meta "-e^Oo" -c .screenrc.meta
+            tmux -L meta -f ~/.tmux.conf.meta attach -t meta
 
             # # run zeiterfassung end
 	    # cd ~/shared/arbeitszeit/`hostname`
@@ -174,7 +163,7 @@ case $STY in
             #disown
             #exit 0
         else
-            screen -a -A -d -RR -S local
+            tmux -L default attach
         fi
         ;;
 esac
