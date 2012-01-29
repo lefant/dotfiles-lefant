@@ -1,9 +1,18 @@
+# if meta session does not exist yet,
+# create it and spawn a default one inside
+new-session -s meta
+new-window -n default -t 0 -k 'tmux -L default attach'
+
+# fix prefix to be C-o for meta session
 set-option -g prefix C-o
 unbind-key C-b
 bind-key C-o send-prefix
 bind-key o send-prefix
 
-# screen compatibility keybindings
+# white status bar for meta session
+set-option status-bg white
+
+# screen muscle memory compatibility keybindings
 # I am just too used to stay on the ctrl key...
 bind-key C-c new-window
 bind-key C-d detach-client
@@ -11,6 +20,3 @@ bind-key C-l last-window
 bind-key C-n next-window
 bind-key C-p previous-window
 bind-key C-r refresh-client
-
-set-option status-bg white
-
