@@ -84,6 +84,13 @@ maybe_run_keychain () {
     fi
 }
 
+# set screen / tmux window title to hostname / sudo command
+cool_window_title() {
+    local CMD=${1[(wr)^(*=*|sudo|ssh|-*)]}
+    CMD=`echo $CMD|cut -f 1 -d "."`
+    echo -ne "\ek$CMD\e\\"
+    SCREENTITLE=$'%{\ekzsh\e\\%}'
+}
 
 chpwd() {
     export __CURRENT_GIT_BRANCH="$(parse_git_branch)"
@@ -104,6 +111,7 @@ case $TMUX in
         ;;
     *meta*)
         preexec () {
+            cool_window_title $*
             fix_env
         }
         precmd () {
