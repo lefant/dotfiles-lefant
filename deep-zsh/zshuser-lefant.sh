@@ -126,34 +126,36 @@ case $STY in
 
         if [ -z $SSH_TTY ]; then
             case `hostname` in
-                nix)
-                    # sudo invoke-rc.d openvpn start validad
+                hecht)
+                    ~/.bin/xplanet.sh &
+                    setxkbmap dvorak -option compose:ralt -option compose:rwin -option ctrl:nocaps &
                     ;;
                 *)
+                    setxkbmap dvorak -option compose:ralt -option compose:rwin -option ctrl:nocaps &
                     ;;
             esac
 
             unsetopt notify
             #unison -silent -terse &>/dev/null
 
-            if touch /dev/fuse &>/dev/null
-            then
-                if [ -e /usr/bin/afuse ]
-                then
-                    afuse \
-                        -o mount_template="sshfs -o reconnect %r:/ %m" \
-                        -o unmount_template="fusermount -u -z %m" \
-                        ~/sshfs/ &
-                fi
-
-                if [ -e /usr/bin/encfs ]
-                then
-                    afuse \
-                        -o mount_template='sh -c "encfs -S /home/.enc/%r %m <~/.secret/encfs/%r"' \
-                        -o unmount_template="fusermount -u -z %m" \
-                        ~/.encfs
-                fi
-            fi
+#            if touch /dev/fuse &>/dev/null
+#            then
+#                if [ -e /usr/bin/afuse ]
+#                then
+#                    afuse \
+#                        -o mount_template="sshfs -o reconnect %r:/ %m" \
+#                        -o unmount_template="fusermount -u -z %m" \
+#                        ~/sshfs/ &
+#                fi
+#
+#                if [ -e /usr/bin/encfs ]
+#                then
+#                    afuse \
+#                        -o mount_template='sh -c "encfs -S /home/.enc/%r %m <~/.secret/encfs/%r"' \
+#                        -o unmount_template="fusermount -u -z %m" \
+#                        ~/.encfs
+#                fi
+#            fi
 
             # # run zeiterfassung start
 	    # cd ~/shared/arbeitszeit/`hostname`
