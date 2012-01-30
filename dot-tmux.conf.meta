@@ -1,7 +1,7 @@
 # if meta session does not exist yet,
 # create it and spawn a default one inside
 new-session -s meta
-new-window -n default -t 0 -k 'tmux -L default attach'
+new-window -n default -t 0 -k 'zsh -c "tmux -L default attach; tmux -L default set-option status-bg $TMUX_COLOUR"'
 
 # fix prefix to be C-o for meta session
 set-option -g prefix C-o
@@ -9,8 +9,8 @@ unbind-key C-b
 bind-key C-o send-prefix
 bind-key o send-prefix
 
-# white status bar for meta session
-set-option status-bg white
+set-option -g status-bg white
+set-option -g status-right '#h %Y-%m-%d %H:%M'
 
 # screen muscle memory compatibility keybindings
 # I am just too used to stay on the ctrl key...
