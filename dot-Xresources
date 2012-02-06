@@ -13,6 +13,8 @@ URxvt.keysym.C-Delete:    perl:matcher
 URxvt.underlineURLs:      true
 URxvt.urgentOnBell:       true
 
+URxvt.colorIT: red
+
 *scrollBar:		false
 *background:            black
 *foreground:            grey80
