@@ -5,8 +5,8 @@ emacs*toolBar: 0
 emacs*menuBar: off
 emacs*scrollBars: off
 
-*font: -*-terminus-medium-*-*-*-24-*-*-*-*-*-*-*
-URxvt.font:  -*-terminus-medium-*-*-*-24-*-*-*-*-*-*-*
+*font: -*-terminus-medium-r-*-*-24-*-*-*-*-*-*-*
+URxvt.font:  -*-terminus-medium-r-*-*-24-*-*-*-*-*-*-*
 URxvt.perl-ext:           default,matcher
 URxvt.urlLauncher:        sensible-browser
 URxvt.keysym.C-Delete:    perl:matcher
