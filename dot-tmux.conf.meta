@@ -12,6 +12,7 @@ bind-key o send-prefix
 set-option -g default-terminal "screen-256color"
 set-option -g status-bg white
 set-option -g status-right '#h %Y-%m-%d %H:%M'
+set-option -g history-limit 10000
 
 # screen muscle memory compatibility keybindings
 # I am just too used to stay on the ctrl key...
