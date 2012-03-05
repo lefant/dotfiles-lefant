@@ -1,2 +1,6 @@
 [ui]
 username = Fabian Linzberger <e@lefant.net>
+ssh = ssh -C
+
+[extensions]
+color = /usr/share/pyshared/hgext/color.py
