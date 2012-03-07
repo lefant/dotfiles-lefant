@@ -5,5 +5,4 @@ ssh = ssh -C
 [extensions]
 color = /usr/share/pyshared/hgext/color.py
 record = /usr/share/pyshared/hgext/record.py
-
-
+graphlog = /usr/share/pyshared/hgext/graphlog.py
