@@ -1,4 +1,2 @@
-code:add_pathz("/home/fabian/svn/kred/lib").
-
-code:add_pathz("/home/fabian/git/distel/ebin").
+code:add_pathz("$HOME/git/other/distel/ebin").
 
