@@ -1,5 +1,6 @@
-#!/usr/bin/env ERL_LIBS="lib:deps" escript
--export([main/1]).
+#!/usr/bin/env escript
+%%! -env ERL_LIBS deps:lib:../deps:../lib
+%% -*- erlang -*-
 
 main([File_Name]) ->
   Includes0 = filelib:wildcard("{deps,lib}/*/{src,include}") ++ ["src", "include"],

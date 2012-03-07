@@ -10,7 +10,7 @@
                           'flymake-create-temp-inplace))
           (local-file (file-relative-name temp-file
                                           (file-name-directory buffer-file-name))))
-    (list "ERL_LIBS="lib:deps" escript ~/.emacs.d/eflymake.escript" (list local-file))))
+    (list "~/.emacs.d/eflymake.escript" (list local-file))))
 
 (add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
 
