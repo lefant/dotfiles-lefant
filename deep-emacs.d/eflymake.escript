@@ -1,5 +1,5 @@
 #!/usr/bin/env escript
-%%! -env ERL_LIBS deps:lib:../deps:../lib:../../../lib
+%%! -env ERL_LIBS apps:deps:lib:../apps:../deps:../lib:../../../apps
 %% -*- erlang -*-
 
 main([File_Name]) ->
