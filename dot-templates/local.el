@@ -11,6 +11,15 @@
 (add-to-list 'load-path "/home/lefant/git/git-emacs")
 ;;(require 'git-emacs)
 
+;; mac os x erlang install path
+;(add-to-list 'load-path "/usr/lib/erlang/lib/tools-2.6.6.6/emacs")
+;(load "erlang-conf.el")
+
+;(require 'magit)
+
+;(load "puppet-conf.el")
+
+
 ;;(require 'org)
 ;;(add-to-list 'auto-mode-alist '("\\.org\\'" . org-mode))
 ;;(global-set-key "\C-cl" 'org-store-link)
