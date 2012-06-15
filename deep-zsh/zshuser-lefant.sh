@@ -1,13 +1,12 @@
-
 . ~/.common.sh
 
 export EMAIL="e@lefant.net"
-export DEBEMAIL="Fabian Linzberger <e@lefant.net>"
-export DARCS_EMAIL="Fabian Linzberger <e@lefant.net>"
-export REPORTBUGEMAIL="Fabian Linzberger <e@lefant.net>"
+#export DEBEMAIL="Fabian Linzberger <e@lefant.net>"
+#export DARCS_EMAIL="Fabian Linzberger <e@lefant.net>"
+#export REPORTBUGEMAIL="Fabian Linzberger <e@lefant.net>"
 export GIT_AUTHOR_NAME="Fabian Linzberger"
-#export GIT_AUTHOR_EMAIL="e@lefant.net"
 export GIT_COMMITTER_NAME="Fabian Linzberger"
+#export GIT_AUTHOR_EMAIL="e@lefant.net"
 #export GIT_COMMITTER_EMAIL="e@lefant.net"
 export GPGKEY=C02860F0
 
