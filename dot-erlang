@@ -1,2 +1,5 @@
-code:add_pathz("$HOME/git/other/distel/ebin").
-
+HomeDir = os:getenv("HOME"),
+io:format("sourcing ~s/.erlang...", [HomeDir]),
+code:add_path(HomeDir ++ "/git/other/distel/ebin"),
+code:add_path(HomeDir ++ "/git/other/eunit/ebin").
+io:format(" ...done~n").
