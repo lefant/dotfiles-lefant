@@ -1,5 +1,5 @@
 ;; general personal stuff
-(setq user-mail-address "e@lefant.net")
+;(setq user-mail-address "e@lefant.net")
 (setq user-host-name "lefant.net")
 (setq user-full-name "Fabian Linzberger")
 
@@ -137,17 +137,10 @@
 (add-hook 'emacs-lisp-mode-hook 'pretty-lambdas)
 
 
-(defun my-whitespace-setup()
-  (require 'whitespace)
-  (setq whitespace-style (list 'tabs 'trailing 'lines-tail)
-        whitespace-line-column 79)
-  (global-whitespace-mode t))
-
-
-
-(if (locate-library "whitespace")
-    (my-whitespace-setup))
-
+(require 'whitespace)
+(setq whitespace-style (list 'face 'tabs 'trailing 'lines-tail
+      'lines 'whitespace-line) whitespace-line-column 80)
+(global-whitespace-mode t)
 
 
 (setq initial-buffer-choice "~/Dropbox/dot-state/gtd.org")
