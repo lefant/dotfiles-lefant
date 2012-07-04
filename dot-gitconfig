@@ -2,10 +2,22 @@
         ui = auto
 [core]
         excludesfile = "~/.gitignore"
-[merge]
-        tool = kdiff3
 [push]
         # instead of pushing all branches with git push, you only push the current one.
         default = current
 [url "https://github.com/"]
         insteadOf = "gh:"
+
+
+# adapted from http://ulf.zeitform.de/de/dokumente/git-ediff
+[diff]
+        tool = ediff3
+        guitool = ediff3
+[difftool "ediff3"]
+        cmd = ediff3.sh $LOCAL $REMOTE $MERGED
+[merge]
+        tool = ediff3merge
+        conflictstyle = diff3
+[mergetool "ediff3merge"]
+        cmd = ediff3merge.sh $LOCAL $REMOTE $MERGED $BASE
+        trustExitCode = false
