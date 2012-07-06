@@ -3,10 +3,11 @@
 ## downloaded from http://ulf.zeitform.de/de/dokumente/git-ediff
 
 # tools
-_EMACSCLIENT=/usr/local/bin/emacsclient
-_BASENAME=/bin/basename
-_EGREP=/bin/egrep
-_MKTEMP=/bin/mktemp
+# tools
+_EMACSCLIENT=emacsclient
+_BASENAME=basename
+_EGREP=egrep
+_MKTEMP=mktemp
 
 # args
 _LOCAL=${1}
