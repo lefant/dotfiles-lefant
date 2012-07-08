@@ -1,9 +1,9 @@
+;; ghc-mod, get via cabal.
+;; FIXME: mac specific part hardcoded...
 (add-to-list 'load-path
   "/Users/fabian/Library/Haskell/ghc-7.4.1/lib/ghc-mod-1.10.18/share")
 (autoload 'ghc-init "ghc" nil t)
 
-
-(load "~/git/other/haskell-mode/haskell-site-file.el")
 
 (custom-set-variables '(haskell-program-name "ghci"))
 
