@@ -1,5 +1,5 @@
 HomeDir = os:getenv("HOME"),
-io:format("sourcing ~s/.erlang...", [HomeDir]),
+%%io:format("sourcing ~s/.erlang...", [HomeDir]),
 code:add_path(HomeDir ++ "/git/other/distel/ebin"),
 code:add_patha(HomeDir ++ "/git/other/eunit/ebin").
-io:format(" ...done~n").
+%%io:format(" ...done~n").
