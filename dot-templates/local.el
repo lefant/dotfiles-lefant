@@ -12,3 +12,5 @@
 (setq erlang-indent-level '4)
 
 (load "haskell-conf.el")
+
+(load-theme 'solarized-dark t)
