@@ -24,21 +24,12 @@ case `hostname` in
         #STD_APPS="${STD_APPS} nm-applet xfce4-panel"
         gnome-session
         ;;
-    hecht)
-        #STD_APPS="${STD_APPS} nm-applet xfce4-panel"
-        xfce4-panel &
-        chromium-browser &
-        gnome-terminal &
-	~/.bin/xplanet.sh &
-	gnome-sound-applet &
-	sh -c "sleep 2 && /home/fabian/.bin/dropbox.py start" &
-	xmonad
-        ;;
     archon)
         #STD_APPS="${STD_APPS} nm-applet xfce4-panel"
         xfce4-panel &
         chromium-browser &
-        gnome-terminal &
+        #gnome-terminal &
+	urxvt &
 	gnome-sound-applet &
 	sh -c "sleep 2 && /home/lefant/.bin/dropbox.py start" &
 	xmonad
