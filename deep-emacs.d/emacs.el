@@ -150,4 +150,14 @@
 (setq split-height-threshold 140)
 (split-window-horizontally 82)
 
+
+
+;; to display flymake context in tty emacs
+(defun my-flymake-show-help ()
+   (when (get-char-property (point) 'flymake-overlay)
+     (let ((help (get-char-property (point) 'help-echo)))
+       (if help (message "%s" help)))))
+(add-hook 'post-command-hook 'my-flymake-show-help)
+
+
 (load "local.el")
