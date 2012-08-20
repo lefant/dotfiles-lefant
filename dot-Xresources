@@ -16,10 +16,10 @@ URxvt.urgentOnBell:       true
 URxvt.colorIT: red
 
 *scrollBar:             false
-*background:            black
-*foreground:            grey80
-*cursorColor:           red
-*cursorColor2:          blue
+!! *background:            black
+!! *foreground:            grey80
+!! *cursorColor:           red
+!! *cursorColor2:          blue
 
 
 xterm*scrollBars: off
