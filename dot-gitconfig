@@ -9,15 +9,17 @@
         insteadOf = "gh:"
 
 
-# adapted from http://ulf.zeitform.de/de/dokumente/git-ediff
-[diff]
-        tool = ediff3
-        guitool = ediff3
-[difftool "ediff3"]
-        cmd = ediff3.sh $LOCAL $REMOTE $MERGED
-[merge]
-        tool = ediff3merge
-        conflictstyle = diff3
-[mergetool "ediff3merge"]
-        cmd = ediff3merge.sh $LOCAL $REMOTE $MERGED $BASE
-        trustExitCode = false
+# # adapted from http://ulf.zeitform.de/de/dokumente/git-ediff
+# [diff]
+#         tool = ediff3
+#         guitool = ediff3
+# [difftool "ediff3"]
+#         cmd = ediff3.sh $LOCAL $REMOTE $MERGED
+# [merge]
+#         tool = ediff3merge
+#         #conflictstyle = diff3
+# [mergetool "ediff3merge"]
+#         cmd = ediff3merge.sh $LOCAL $REMOTE $MERGED $BASE
+#         trustExitCode = false
+[github]
+        user = lefant
