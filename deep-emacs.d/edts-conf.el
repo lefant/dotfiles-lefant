@@ -1,0 +1,22 @@
+
+(add-to-list 'load-path "~/git/other/edts")
+(load "edts-start.el")
+;(require 'edts-start)
+;(edts-man-set-root "/usr/lib/erlang/man")
+
+(setq edts-projects
+      '(((name       . "campanja_dev")
+         (root       . "~/git/campanja/dev")
+         (node-sname . "dev")
+         ;;(start-command . "./start-being-awesome.sh"))
+         )
+        ((name       . "campanja_dev2")
+         (root       . "~/git/campanja/dev2")
+         (node-sname . "dev2")
+         ;;(start-command . "./start-being-awesome.sh"))
+         )
+        ((name       . "hanoidb")
+         (root       . "~/git/other/hanoidb")
+         (node-sname . "hanoidb")
+         ;;(start-command . "./start-being-awesome.sh"))
+         )))
