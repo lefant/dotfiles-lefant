@@ -16,12 +16,14 @@ host *.42.lefant.net
      #AddressFamily inet6
      user lefant
 
-host *.lefant.net muybridge.*
+host *.lefant.net muybridge.* icebox.local
      user lefant
 
 host hip* hop* hep* al* wave* skib* mixer* tune* geri* gifur*
      user root
 
+host *.eu-west-1.compute.amazonaws.com *.campanja.net *.eu-west-1.compute.internal
+     user fabian
 
 host *
      HashKnownHosts no
