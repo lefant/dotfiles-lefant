@@ -28,6 +28,7 @@ host *.eu-west-1.compute.amazonaws.com *.campanja.net *.eu-west-1.compute.intern
 host *
      HashKnownHosts no
      NoHostAuthenticationForLocalhost yes
+     CheckHostIP no
      ControlMaster auto
      ControlPath ~/.ssh/sock/%r@%h:%p
      VisualHostKey yes
