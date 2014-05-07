@@ -22,10 +22,13 @@ host *.lefant.net muybridge.* icebox.local
 host hip* hop* hep* al* wave* skib* mixer* tune* geri* gifur*
      user root
 
+host *.eu-west-1.compute.amazonaws.com *.campanja.net *.eu-west-1.compute.internal
+     user fabian
 
 host *
      HashKnownHosts no
      NoHostAuthenticationForLocalhost yes
+     CheckHostIP no
      ControlMaster auto
      ControlPath ~/.ssh/sock/%r@%h:%p
      VisualHostKey yes
