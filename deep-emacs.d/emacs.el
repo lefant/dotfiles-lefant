@@ -114,7 +114,7 @@
 (load "outline-conf.el")
 
 
-(load "haskell-conf.el")
+;(load "haskell-conf.el")
 ;;(load "erlang-conf.el")
 
 
@@ -123,7 +123,7 @@
        (erlang-indent-level . 4)
        (show-trailing-whitespace . t)
        (set-fill-column . 79)
-       (highlight-beyond-fill-column . t)
+       (highlight-beyond-fill-column . f)
        (allout-layout . t)))
 
 
@@ -138,17 +138,16 @@
 
 
 (require 'whitespace)
-(setq whitespace-style (list 'face 'tabs 'trailing 'lines-tail
-      'lines 'whitespace-line) whitespace-line-column 80)
+(setq whitespace-style (list 'face 'tabs 'trailing 'whitespace-line) whitespace-line-column 80)
 (global-whitespace-mode t)
 
 
 (setq initial-buffer-choice "~/Dropbox/dot-state/gtd.org")
 
 
-(setq split-height-threshold nil)
-(setq split-height-threshold 140)
-(split-window-horizontally 82)
+;(setq split-height-threshold nil)
+;(setq split-height-threshold 140)
+;(split-window-horizontally 82)
 
 
 

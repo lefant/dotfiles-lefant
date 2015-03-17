@@ -1,16 +1,27 @@
-(server-start)
-
 (require 'edit-server)
+(setq edit-server-new-frame nil)
 (edit-server-start)
-
-(setq browse-url-browser-function (quote browse-url-generic))
-(setq browse-url-generic-program "chromium-browser")
 
 (load "elpa-conf.el")
 
-(load "erlang-conf.el")
-(setq erlang-indent-level '4)
+;(load "erlang-conf.el")
 
 (load "haskell-conf.el")
 
-(load-theme 'solarized-dark t)
+;(load-theme 'solarized-dark t)
+;(load-theme 'manoj-dark t)
+;(load-theme 'zenburn t)
+
+;; get this one from https://github.com/sellout/emacs-color-theme-solarized
+(add-to-list 'custom-theme-load-path "/Users/fabian/git/other/emacs-color-theme-solarized")
+(setq frame-background-mode 'light)
+(set-terminal-parameter nil 'background-mode 'dark)
+(load-theme 'solarized t)
+
+
+(load "scala-conf.el")
+
+(load "js-conf.el")
+
+(require 'ess)
+
