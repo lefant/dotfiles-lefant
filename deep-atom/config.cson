@@ -1,0 +1,33 @@
+"*":
+  "exception-reporting":
+    userId: "11d4bca2-5e83-a22f-a432-661a285881e7"
+  welcome:
+    showOnStartup: false
+  core:
+    disabledPackages: [
+      "tree-view"
+    ]
+  "file-watcher":
+    promptWhenFileHasChangedOnDisk: false
+  nuclide:
+    remoteProjectsConfig: []
+  editor:
+    invisibles: {}
+    showInvisibles: true
+    showIndentGuide: true
+  "disable-keybindings":
+    allCommunityPackages: true
+    exceptCommunityPackages: [
+      "emacs-plus"
+      "view-mode"
+      "atomatagit"
+    ]
+    bundledPackages: [
+      "fuzzy-finder"
+      "find-and-replace"
+      "core:select-all"
+      "core:close"
+    ]
+    prefixKeys: [
+      "ctrl-k"
+    ]
