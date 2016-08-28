@@ -5,8 +5,8 @@ emacs*toolBar: 0
 emacs*menuBar: off
 emacs*scrollBars: off
 
-*font: -*-terminus-medium-r-*-*-22-*-*-*-*-*-*-*
-URxvt.font:  -*-terminus-medium-r-*-*-22-*-*-*-*-*-*-*
+*font: -*-terminus-bold-r-*-*-22-*-*-*-*-*-*-*
+URxvt.font:  -*-terminus-bold-r-*-*-22-*-*-*-*-*-*-*
 URxvt.perl-ext:           default,matcher
 URxvt.urlLauncher:        sensible-browser
 URxvt.keysym.C-Delete:    perl:matcher
@@ -78,7 +78,8 @@ XLock.logoutButton: -1
 #define S_green         #859900
 
 *background:            S_base03
-*foreground:            S_base00
+!!*foreground:            S_base00
+*foreground:            grey80
 *fading:                40
 *fadeColor:             S_base03
 *cursorColor:           S_base1

@@ -29,4 +29,7 @@
         lola = log --graph --decorate --pretty=oneline  --abbrev-commit --all
         l = log --graph --abbrev-commit --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
 [credential]
-	helper = store
+        helper = store
+[commit]
+        gpgsign = true
+
