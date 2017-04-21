@@ -4,8 +4,7 @@
 ;; package-list-packages
 ;; web-mode flycheck eslint-fix
 
-;; npm install -g yarn
-;; yarn global add eslint prettier eslint-plugin-prettier standard eslint-config-standard eslint-config-standard-babel eslint-config-standard-react
+;; npm install -g eslint babel-eslint eslint-plugin-babel prettier eslint-config-prettier eslint-plugin-prettier standard eslint-plugin-standard eslint-plugin-react eslint-plugin-import eslint-plugin-node eslint-plugin-promise eslint-config-standard eslint-config-standard-babel eslint-config-standard-react
 
 ;; .eslintrc.js
 ;; module.exports = {
@@ -39,6 +38,10 @@
 
 
 (defun my-web-mode-hook ()
-  (add-hook 'before-save-hook 'eslint-fix nil t))
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (electric-indent-local-mode -1)
+  (add-hook 'after-save-hook 'eslint-fix nil t))
 (add-hook 'web-mode-hook 'my-web-mode-hook)
 
