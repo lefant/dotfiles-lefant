@@ -120,14 +120,14 @@ case $TMUX in
         maybe_run_keychain
         fix_env
 
-        if [ -z $SSH_TTY ]; then
+        if [ -z "$SSH_TTY" -a -z "$DOCKER_HACKBOX" ]; then
             case `hostname` in
                 hecht)
                     ~/.bin/xplanet.sh &
                     setxkbmap dvorak -option compose:ralt -option compose:rwin -option ctrl:nocaps &
                     ;;
                 *)
-                    setxkbmap dvorak -option compose:ralt -option compose:rwin -option ctrl:nocaps &
+                    echo "unconfigured host: $(`hostname`)"
                     ;;
             esac
 
@@ -152,11 +152,6 @@ case $TMUX in
 #                        ~/.encfs
 #                fi
 #            fi
-
-            # # run zeiterfassung start
-	    # cd ~/shared/arbeitszeit/`hostname`
-	    # echo "arrived **" |~/shared/code/python/timelog/timelog.py
-	    # cd ~
 
             tmux -L meta -f ~/.tmux.conf.meta attach -t meta
 
