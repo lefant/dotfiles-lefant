@@ -99,6 +99,7 @@ case $TMUX in
 
         else
             tmux -L default attach
+            exit
         fi
         ;;
 esac
