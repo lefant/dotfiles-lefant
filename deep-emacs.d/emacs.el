@@ -142,9 +142,6 @@
 (global-whitespace-mode t)
 
 
-(setq initial-buffer-choice "~/Dropbox/dot-state/gtd.org")
-
-
 ;(setq split-height-threshold nil)
 ;(setq split-height-threshold 140)
 ;(split-window-horizontally 82)
@@ -157,6 +154,17 @@
      (let ((help (get-char-property (point) 'help-echo)))
        (if help (message "%s" help)))))
 (add-hook 'post-command-hook 'my-flymake-show-help)
+
+
+(require 'edit-server)
+(setq edit-server-new-frame nil)
+(edit-server-start)
+
+(load "elpa-conf.el")
+
+(setq frame-background-mode 'light)
+(set-terminal-parameter nil 'background-mode 'dark)
+(load-theme 'solarized t)
 
 
 (load "local.el")
