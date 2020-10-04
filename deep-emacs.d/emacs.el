@@ -156,15 +156,11 @@
 (add-hook 'post-command-hook 'my-flymake-show-help)
 
 
-(require 'edit-server)
-(setq edit-server-new-frame nil)
-(edit-server-start)
-
 (load "elpa-conf.el")
 
-(setq frame-background-mode 'light)
-(set-terminal-parameter nil 'background-mode 'dark)
-(load-theme 'solarized t)
+;; (setq frame-background-mode 'light)
+;; (set-terminal-parameter nil 'background-mode 'dark)
+;;(load-theme 'solarized t)
 
 
 (load "local.el")
