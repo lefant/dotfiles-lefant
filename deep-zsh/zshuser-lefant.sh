@@ -60,7 +60,7 @@ PS1='%n@%m:%~/ $(echo $__CURRENT_GIT_BRANCH)$ '
 case $TMUX in
     *default*)
         preexec () {
-            fix_env
+            # fix_env
         }
         precmd () {
             __CURRENT_GIT_BRANCH="$(parse_git_branch)"
@@ -70,13 +70,13 @@ case $TMUX in
     *meta*)
         preexec () {
             cool_window_title $*
-            fix_env
+            # fix_env
         }
         precmd () {
         }
         ;;
     *)
-        fix_env
+        # fix_env
 
         if [ -z "$SSH_TTY" -a -z "$DOCKER_HACKBOX" ]; then
             case `hostname` in
