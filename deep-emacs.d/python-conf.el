@@ -1,10 +1,21 @@
-(add-hook 'python-mode-hook 'blacken-mode)
+(require 'python)
 
-(pyenv-mode)
-(require 'pyenv-mode-auto)
+(setq python-shell-interpreter "jupyter"
+      python-shell-interpreter-args "console --simple-prompt"
+      python-shell-prompt-detect-failure-warning nil)
+(add-to-list 'python-shell-completion-native-disabled-interpreters
+             "jupyter")
+
+(require 'auto-virtualenv)
+(add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
+(add-hook 'python-mode-hook 'blacken-mode)
+(add-hook 'before-save-hook 'py-isort-before-save)
 
 (elpy-enable)
+;;(pyvenv-activate "~/Library/Caches/pypoetry/virtualenvs/all-libs-and-services-cuqknVEf-py3.8/")
 
-(require 'python)
-(setq python-shell-interpreter "ipython")
 
+;; Enable Flycheck
+(when (require 'flycheck nil t)
+  (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+  (add-hook 'elpy-mode-hook 'flycheck-mode))
