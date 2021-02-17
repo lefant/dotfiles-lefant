@@ -63,8 +63,21 @@ alias greperl="grep --color=auto --ignore-case --exclude='.*' --include='*rl' --
 # someone said this helps with terminal weirdness
 unset TERMCAP
 
-export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
-export TMUX_COLOUR="colour$((0x$(hostname |md5sum |head -c 2)))"
+
+
+which -s md5sum >/dev/null
+if [[ $? = 0 ]]
+then
+    export SCREEN_CAPTION_COLOR="`hostname |md5sum |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
+    export TMUX_COLOUR="colour$((0x$(hostname |md5sum |head -c 2)))"
+else
+    which -s md5 >/dev/null
+    if [[ $? = 0 ]]
+    then
+        export SCREEN_CAPTION_COLOR="`hostname |md5 |head -c 1 |tr 0123456789abcdef YRGBCYMRGBCMYRGB`"
+        export TMUX_COLOUR="colour$((0x$(hostname |md5 |head -c 2)))"
+    fi
+fi
 
 
 SSH_ASKPASS=`which ssh-askpass`
