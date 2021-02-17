@@ -33,3 +33,6 @@
 # [commit]
 #         gpgsign = true
 
+
+[includeIf "gitdir:~/git/lefant/"]
+    path = .gitconfig.lefant
