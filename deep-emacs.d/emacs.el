@@ -148,19 +148,13 @@
 
 
 
-;; to display flymake context in tty emacs
-(defun my-flymake-show-help ()
-   (when (get-char-property (point) 'flymake-overlay)
-     (let ((help (get-char-property (point) 'help-echo)))
-       (if help (message "%s" help)))))
-(add-hook 'post-command-hook 'my-flymake-show-help)
-
-
 (load "elpa-conf.el")
+(load "package-conf.el")
 
 ;; (setq frame-background-mode 'light)
 ;; (set-terminal-parameter nil 'background-mode 'dark)
 ;;(load-theme 'solarized t)
+(load-theme 'material t)
 
 
 (load "local.el")
