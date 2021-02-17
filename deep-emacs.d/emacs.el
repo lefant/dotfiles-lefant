@@ -148,7 +148,6 @@
 
 
 
-(load "elpa-conf.el")
 (load "package-conf.el")
 
 ;; (setq frame-background-mode 'light)

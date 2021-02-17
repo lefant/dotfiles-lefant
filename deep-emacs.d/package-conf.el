@@ -1,21 +1,32 @@
-(defvar myPackages
+(require 'package)
+
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+
+(package-initialize)
+
+
+(dolist (package
   '(
+    ;; python
+    auto-virtualenv
     blacken
     ein
     elpy
-    eslint-fix
-    js2-mode
-    magit
-    material-theme
-    prettier-js
     py-isort
     python
-    solarized-theme
+
+    ;; javascript
+    eslint-fix
+    js2-mode
+    prettier-js
     web-mode
+
+    magit
+    material-theme
+    solarized-theme
     )
   )
-
-(mapc #'(lambda (package)
-          (unless (package-installed-p package)
-            (package-install package)))
-      myPackages)
+ (unless (package-installed-p package)
+   (package-install package))
+ (require package))
