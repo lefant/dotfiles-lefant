@@ -17,6 +17,8 @@
 ;; use web-mode for .jsx files
 (add-to-list 'auto-mode-alist '("\\.jsx$" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.js$" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tsx$" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.ts$" . web-mode))
 
 (require 'flycheck)
 ;; turn on flychecking globally
@@ -44,4 +46,3 @@
   (electric-indent-local-mode -1)
   (add-hook 'after-save-hook 'eslint-fix nil t))
 (add-hook 'web-mode-hook 'my-web-mode-hook)
-
