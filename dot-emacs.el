@@ -12,10 +12,10 @@
  '(haskell-program-name "ghci")
  '(haskell-stylish-on-save t)
  '(haskell-tags-on-save t)
- '(purescript-mode-hook (quote (turn-on-eldoc-mode turn-on-purescript-indentation)))
- '(js2-basic-offset 2)
+ '(js-indent-level 2)
  '(package-selected-packages
-   '(auto-virtualenv material-theme py-isort eslint-fix prettier-js js2-mode web-mode python solarized-theme)))
+   '(lsp-pyright prettier-js lsp-mode magit-diff-flycheck mustache-mode terraform-mode use-package org-roam flycheck git-commit magit pyenv-mode yaml-mode dockerfile-mode ein elpy auto-virtualenv material-theme py-isort eslint-fix js2-mode web-mode python solarized-theme))
+ '(purescript-mode-hook '(turn-on-eldoc-mode turn-on-purescript-indentation)))
 
 
 (put 'downcase-region 'disabled nil)
